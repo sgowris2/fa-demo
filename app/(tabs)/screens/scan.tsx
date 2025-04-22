@@ -11,12 +11,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ProgressCircle from "react-native-progress/Circle";
+import { ProgressCircle } from "react-native-progress/Circle";
+import { LineChart } from "react-native-chart-kit";
 
-export default function App() {
+export default function ScanPage() {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [images, setImages] = useState<string[]>([]);
@@ -65,12 +67,25 @@ export default function App() {
     setIsGrading(true);
     try {
       console.log("Grading images:", images);
-      const response = await fetch("https://api.example.com/grade", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images }),
-      });
-      const result = await response.json();
+      // const response = await fetch("https://api.example.com/grade", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ images }),
+      // });
+      // const result = await response.json();
+      const result = {
+        score: 70, // Numeric score representing the performance, typically out of 100
+        questions: [
+          { questionId: 1, text: 'abcd', correct: true, answer: "B" },
+          { questionId: 2, text: 'abcd', correct: false, answer: "A" },
+          { questionId: 3, text: 'abcd', correct: true, answer: "C" },
+          { questionId: 4, text: 'abcd', correct: true, answer: "D" }
+        ],
+        insights: [
+          "Review the concepts of mathematical proofs",
+          "Focus more on problem-solving under time pressure"
+        ]
+      };
       setGradingResult(result);
     } catch (error) {
       console.error("Error grading images:", error);
@@ -81,34 +96,105 @@ export default function App() {
   };
 
   const renderGradingResult = () => {
-    console.log('Rendering grading result');
     if (!gradingResult) return null;
 
     const { score, questions, insights } = gradingResult;
+    const { width } = Dimensions.get('window');
+    const chartWidth = width - 64; // Adjust for padding
+    const chartHeight = 150; // Set a fixed height for the chart
+
+    // Mock data for the last 5 scores
+    const lastFiveScores = [65, 70, 75, 80, score]; // Replace with actual data if available
+    const data = {
+      labels: ['1', '2', '3', '4', '5'], // Adjust labels if needed
+      datasets: [
+        {
+          data: lastFiveScores, // The data for the line chart (lastFiveScores is expected to be an array of numbers)
+          strokeWidth: 2, // Line thickness
+        },
+      ],
+    };
+
 
     return (
       <ScrollView className="flex-1 px-6 py-8 bg-white dark:bg-neutral-900">
-        <Text className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Assessment Results
+        <Text className="text-xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">
+          Worksheet #61 - Science (Grade 5)
+        </Text>
+        <Text className="text-md font-semibold text-gray-900 dark:text-white mb-2">
+          Chintu C. - Class 5A
+        </Text>
+        <Text className="text-md font-semibold text-gray-900 dark:text-white mb-2">
+          {new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
         </Text>
 
         {/* Circular Percent Gauge */}
         <View className="items-center mb-6">
           <ProgressCircle
-            percent={score} // Use the score directly as a percentage
-            radius={75} // Adjust the radius to match the size
-            borderWidth={8} // Thickness of the circle
-            color="#4CAF50" // Progress color
-            shadowColor="#E0E0E0" // Background circle color
-            bgColor="#FFFFFF" // Background color inside the circle
-          >
-            <Text className="text-lg font-bold text-gray-900 dark:text-white">
-              {score}%
-            </Text>
-          </ProgressCircle>
+            progress={score / 100}
+            size={100}
+            thickness={12}
+            color="#4CAF50"
+            unfilledColor="#E0E0E0"
+            showsText={true}
+            textStyle={{
+              fontSize: 20,
+              fontWeight: 'bold',
+              color: '#FFF',
+            }}
+            formatText={() => `${score}%`}
+          />
         </View>
 
-        {/* Questions List */}
+        <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          Last 5 Science Worksheets
+        </Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+
+          <LineChart
+            data={data} // Use the data structured as per the react-native-chart-kit API
+            width={chartWidth} // Set the width dynamically based on screen size
+            height={chartHeight} // Set the height of the chart
+            chartConfig={{
+              backgroundColor: '#fff',
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
+              decimalPlaces: 0, // Optional: for decimal places in data
+              color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`, // Line color (green)
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color
+              propsForLabels: {
+                fontSize: 12, // Set font size for axis labels
+                fontWeight: '500', // Use medium weight for labels
+              },
+              style: {
+                borderRadius: 16,
+                paddingVertical: 32, // Add more padding for the chart container
+              },
+              gridLines: {
+                drawBorder: false, // Disable border around the chart
+                color: '#d3d3d3', // Lighter grid color for better contrast
+              },
+              propsForDots: {
+                r: '4', // Dot radius for the data points
+                strokeWidth: '2', // Stroke width for the dots
+                stroke: '#4CAF50', // Dot color
+              },
+            }}
+            bezier // Optional: adds a smooth curve to the line chart
+            style={{
+              marginVertical: 16,
+              paddingVertical: 24,
+              borderRadius: 16,
+              backgroundColor: '#fff', // Set background color for the chart container
+              elevation: 5, // Adds shadow for better separation from background
+            }}
+          />
+        </View>
+
         <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           Questions
         </Text>
@@ -121,29 +207,33 @@ export default function App() {
               {question.text}
             </Text>
             <Ionicons
-              name={question.correct ? "checkmark-circle" : "close-circle"}
+              name={question.correct ? 'checkmark-circle' : 'close-circle'}
               size={20}
-              color={question.correct ? "green" : "red"}
+              color={question.correct ? 'green' : 'red'}
             />
           </View>
         ))}
 
-        {/* Insights */}
         <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
           Insights
         </Text>
-        <Text className="text-gray-800 dark:text-gray-200">
-          {insights}
-        </Text>
+        {insights.map((insight: any, index: number) => (
+          <View
+            key={index}
+            className="flex-row justify-between items-center bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2"
+          >
+            <Text className="text-gray-800 dark:text-gray-200">{insight}</Text>
+          </View>
+        ))}
 
-        {/* Scan New Worksheet Button */}
+
         <TouchableOpacity
           onPress={() => {
             setGradingResult(null);
             setImages([]);
             setTakingPicture(true);
           }}
-          className="mt-6 bg-blue-600 px-6 py-3 rounded-lg shadow-md active:opacity-80"
+          className="mt-6 mb-24 bg-blue-600 px-6 py-3 rounded-lg shadow-md active:opacity-80"
         >
           <Text className="text-white text-base font-semibold text-center">
             Scan New Worksheet
@@ -161,42 +251,42 @@ export default function App() {
           Captured Images
         </Text>
         <View className="flex-1w-full items-center justify-center">
-        <FlatList
-          data={images}
-          keyExtractor={(item, index) => index.toString()}
-          numColumns={2}
-          className="flex-1 border border-gray-300 rounded-lg p-2"
-          contentContainerStyle={{ paddingHorizontal: 8 }}
-          style={{
-            maxHeight: 300
-          }}
-          renderItem={({ item }) => (
-            <Image
-              source={{ uri: item }}
-              contentFit="cover"
-              className="w-36 h-36 rounded-lg mx-2 my-2 shadow-md"
-            />
-          )}
-        />
+          <FlatList
+            data={images}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={2}
+            className="flex-1 border border-gray-300 rounded-lg p-2"
+            contentContainerStyle={{ paddingHorizontal: 8 }}
+            style={{
+              maxHeight: 300
+            }}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: item }}
+                contentFit="cover"
+                className="w-36 h-36 rounded-lg mx-2 my-2 shadow-md"
+              />
+            )}
+          />
         </View>
         <View className="w-64 mb-16">
           <View className="mt-8 py-4">
-          <TouchableOpacity
-            onPress={() => setTakingPicture(true)}
-            className="flex-row items-center justify-center bg-blue-500 px-5 py-3 rounded-md shadow active:opacity-80"
-          >
-            <Ionicons name="camera-outline" size={20} color="white" />
-            <Text className="text-white text-xl font-bold ml-2">Scan Next Page</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setTakingPicture(true)}
+              className="flex-row items-center justify-center bg-blue-500 px-5 py-3 rounded-md shadow active:opacity-80"
+            >
+              <Ionicons name="camera-outline" size={20} color="white" />
+              <Text className="text-white text-xl font-bold ml-2">Scan Next Page</Text>
+            </TouchableOpacity>
           </View>
           <View className="py-4">
-          <TouchableOpacity
-            onPress={autoGrade}
-            className="flex-row items-center justify-center bg-green-600 px-5 py-3 rounded-md shadow active:opacity-80"
-          >
-            <Ionicons name="sparkles-outline" size={20} color="white" />
-            <Text className="text-white text-xl font-bold ml-2">Start AI Grading!</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={autoGrade}
+              className="flex-row items-center justify-center bg-green-600 px-5 py-3 rounded-md shadow active:opacity-80"
+            >
+              <Ionicons name="sparkles-outline" size={20} color="white" />
+              <Text className="text-white text-xl font-bold ml-2">Start AI Grading!</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -207,17 +297,17 @@ export default function App() {
     console.log('Rendering camera');
     return (
       <View className="flex-1 relative">
-      <CameraView
-        className="flex-1 w-full"
-        ref={ref}
-        mode="picture"
-        facing="back"
-        mute={true}
-        responsiveOrientationWhenOrientationLocked
-      >
-        <View className="h-full w-full"></View>
-      </CameraView>
-      <View className="absolute bottom-0 left-0 right-0 items-center justify-center px-8 py-16">
+        <CameraView
+          className="flex-1 w-full"
+          ref={ref}
+          mode="picture"
+          facing="back"
+          mute={true}
+          responsiveOrientationWhenOrientationLocked
+        >
+          <View className="h-full w-full"></View>
+        </CameraView>
+        <View className="absolute bottom-0 left-0 right-0 items-center justify-center px-8 py-16">
           <TouchableOpacity onPress={takePicture}>
             <View className="w-24 h-24 rounded-full border-4 border-white items-center justify-center">
               <View className="w-20 h-20 rounded-full bg-white" />
