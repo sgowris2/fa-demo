@@ -27,10 +27,10 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="index"
+        name="scan"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Scan Worksheet',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="scanner.fill" color={color} />,
         }}
       />
       <Tabs.Screen

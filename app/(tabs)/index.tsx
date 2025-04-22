@@ -4,6 +4,14 @@ import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import "./global.css"; 
+import { registerRootComponent } from "expo";
+import { ExpoRoot } from "expo-router";
+export function App() {
+ const ctx = require.context("./app");
+ return <ExpoRoot context={ctx} />;
+}
+registerRootComponent(App);
 
 export default function HomeScreen() {
   return (
@@ -16,7 +24,7 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText type="title">Welcome Sudeep!</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
