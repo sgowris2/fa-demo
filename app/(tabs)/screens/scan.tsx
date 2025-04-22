@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import { ProgressCircle } from "react-native-progress/Circle";
 import { LineChart } from "react-native-chart-kit";
 
@@ -66,13 +67,26 @@ export default function ScanPage() {
 
     setIsGrading(true);
     try {
-      console.log("Grading images:", images);
-      // const response = await fetch("https://api.example.com/grade", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ images }),
+      const uploadImages = async () => {
+        const formData = new FormData();
+        // Loop through the images and append them to the FormData object
+        images.forEach((image, index) => {
+          formData.append('images[]', {
+            uri: image.uri, // URI of the image file
+            type: 'image/jpeg', // MIME type of the image (adjust accordingly)
+            name: `image_${index + 1}.jpg`, // Give a unique name to each file
+          });
+        });
+      }
+      // // Replace with your API endpoint URL
+      // const response = await axios.post('https://your-api-endpoint.com/upload', formData, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data', // Important for sending files
+      //   },
       // });
-      // const result = await response.json();
+
+      // setUploadStatus('Upload successful!');
+
       const result = {
         score: 70, // Numeric score representing the performance, typically out of 100
         questions: [
@@ -87,9 +101,10 @@ export default function ScanPage() {
         ]
       };
       setGradingResult(result);
+      // console.log(response.data);
     } catch (error) {
-      console.error("Error grading images:", error);
-      Alert.alert("Error", "An error occurred while grading the images.");
+      // setUploadStatus('Upload failed!');
+      console.error(error);
     } finally {
       setIsGrading(false);
     }
@@ -225,20 +240,23 @@ export default function ScanPage() {
             <Text className="text-gray-800 dark:text-gray-200">{insight}</Text>
           </View>
         ))}
-
-
-        <TouchableOpacity
-          onPress={() => {
-            setGradingResult(null);
-            setImages([]);
-            setTakingPicture(true);
-          }}
-          className="mt-6 mb-24 bg-blue-600 px-6 py-3 rounded-lg shadow-md active:opacity-80"
-        >
-          <Text className="text-white text-base font-semibold text-center">
-            Scan New Worksheet
-          </Text>
-        </TouchableOpacity>
+        <View className="flex-1 items-center justify-center w-full">
+          <View className="flex-1 items-center justify-center w-72 mb-16 mt-8 py-4">
+            <TouchableOpacity
+              onPress={() => {
+                setGradingResult(null);
+                setImages([]);
+                setTakingPicture(true);
+              }}
+              className="flex-row items-center justify-center bg-blue-600 px-5 py-3 rounded-md shadow active:opacity-80"
+            >
+              <Ionicons name="camera-outline" size={20} color="white" />
+              <Text className="text-white text-xl font-bold ml-2">
+                Scan New Worksheet
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     );
   };
