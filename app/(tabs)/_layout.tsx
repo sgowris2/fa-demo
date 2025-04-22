@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -26,18 +27,19 @@ export default function TabLayout() {
           default: {},
         }),
       }}>
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen
-        name="scan"
+        name="screens/scan"
         options={{
           title: 'Scan Worksheet',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="scanner.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="photo-camera" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="screens/report"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Reports',
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="bar-chart" color={color} />,
         }}
       />
     </Tabs>
