@@ -18,6 +18,12 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { ProgressCircle } from "react-native-progress/Circle";
 import { LineChart } from "react-native-chart-kit";
+import axios from "axios";
+import Constants from "expo-constants";
+import FormData from "form-data";
+
+// const uri = Constants.expoConfig?.hostUri?.split(':').shift()?.concat(':5001') || 'localhost';
+const apiUrl = `https://nice-seas-vanish.loca.lt/api/autograde`;
 
 export default function ScanPage() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -59,51 +65,56 @@ export default function ScanPage() {
     }
   };
 
+  function blobToBase64(blob: Blob) {
+    const reader = new FileReader()
+    reader.readAsDataURL(blob)
+
+    return new Promise((resolve, reject) => {
+      reader.onerror = reject;
+      reader.onload = () => {
+        resolve(String(reader?.result).split(",")[1])
+      }
+    })
+  }
+
   const autoGrade = async () => {
+
     if (images.length === 0) {
       Alert.alert("No images", "Please take at least one picture before auto-grading.");
       return;
     }
-
     setIsGrading(true);
+    console.log("Grading images:", images);
     try {
       const uploadImages = async () => {
-        const formData = new FormData();
-        // Loop through the images and append them to the FormData object
-        images.forEach((image, index) => {
-          formData.append('images[]', {
-            uri: image.uri, // URI of the image file
-            type: 'image/jpeg', // MIME type of the image (adjust accordingly)
-            name: `image_${index + 1}.jpg`, // Give a unique name to each file
-          });
+        var images_in_b64 = [];
+        for (const [index, image] of images.entries()) {
+          const response = await fetch(image);
+          const blob = await response.blob();
+          const b64 = await blobToBase64(blob) as string;
+          console.log("Image blob size:", blob.size);
+          const mimeType = response.headers.get('Content-Type');
+          let extension = 'png'; // Default to 'png' if MIME type is not recognized
+
+          // Map MIME type to file extension
+          if (mimeType === 'image/jpeg') {
+            extension = 'jpg';
+          } else if (mimeType === 'image/png') {
+            extension = 'png';
+          } else if (mimeType === 'image/webp') {
+            extension = 'webp';
+          }
+          images_in_b64.push({ name: `image_${index + 1}.${extension}`, data: b64, type: mimeType });
+        }
+        console.log(apiUrl);
+        const response = await axios.post(apiUrl, {
+          method: 'POST', body: { images: images_in_b64 }
         });
+        console.log('Response received: ', response.data);
+        setGradingResult(response.data);
       }
-      // // Replace with your API endpoint URL
-      // const response = await axios.post('https://your-api-endpoint.com/upload', formData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data', // Important for sending files
-      //   },
-      // });
-
-      // setUploadStatus('Upload successful!');
-
-      const result = {
-        score: 70, // Numeric score representing the performance, typically out of 100
-        questions: [
-          { questionId: 1, text: 'abcd', correct: true, answer: "B" },
-          { questionId: 2, text: 'abcd', correct: false, answer: "A" },
-          { questionId: 3, text: 'abcd', correct: true, answer: "C" },
-          { questionId: 4, text: 'abcd', correct: true, answer: "D" }
-        ],
-        insights: [
-          "Review the concepts of mathematical proofs",
-          "Focus more on problem-solving under time pressure"
-        ]
-      };
-      setGradingResult(result);
-      // console.log(response.data);
+      await uploadImages();
     } catch (error) {
-      // setUploadStatus('Upload failed!');
       console.error(error);
     } finally {
       setIsGrading(false);
@@ -113,44 +124,37 @@ export default function ScanPage() {
   const renderGradingResult = () => {
     if (!gradingResult) return null;
 
-    const { score, questions, insights } = gradingResult;
-    const { width } = Dimensions.get('window');
-    const chartWidth = width - 64; // Adjust for padding
-    const chartHeight = 150; // Set a fixed height for the chart
+    // Unpack the API response
+    const firstKey = Object.keys(gradingResult)[0]; // Get the first key (e.g., "1")
+    const result = gradingResult[firstKey][0]; // Access the first result in the array
 
-    // Mock data for the last 5 scores
-    const lastFiveScores = [65, 70, 75, 80, score]; // Replace with actual data if available
-    const data = {
-      labels: ['1', '2', '3', '4', '5'], // Adjust labels if needed
-      datasets: [
-        {
-          data: lastFiveScores, // The data for the line chart (lastFiveScores is expected to be an array of numbers)
-          strokeWidth: 2, // Line thickness
-        },
-      ],
-    };
+    // Extract relevant data
+    const { answers, score, percent, student_name, subject, date, out_of } = result;
 
+    // Format the date
+    const formattedDate = new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
 
     return (
       <ScrollView className="flex-1 px-6 py-8 bg-white dark:bg-neutral-900">
+        {/* Header Information */}
         <Text className="text-xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">
-          Worksheet #61 - Science (Grade 5)
+          Worksheet Results - {subject.toUpperCase()}
         </Text>
         <Text className="text-md font-semibold text-gray-900 dark:text-white mb-2">
-          Chintu C. - Class 5A
+          {student_name}
         </Text>
         <Text className="text-md font-semibold text-gray-900 dark:text-white mb-2">
-          {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          {formattedDate}
         </Text>
 
         {/* Circular Percent Gauge */}
         <View className="items-center mb-6">
           <ProgressCircle
-            progress={score / 100}
+            progress={percent / 100}
             size={100}
             thickness={12}
             color="#4CAF50"
@@ -159,103 +163,60 @@ export default function ScanPage() {
             textStyle={{
               fontSize: 20,
               fontWeight: 'bold',
-              color: '#FFF',
+              color: '#000000',
             }}
-            formatText={() => `${score}%`}
+            formatText={() => `${percent}%`}
           />
         </View>
 
+        {/* Score Information */}
         <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Last 5 Science Worksheets
+          Score: {score}/{out_of}
         </Text>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
 
-          <LineChart
-            data={data} // Use the data structured as per the react-native-chart-kit API
-            width={chartWidth} // Set the width dynamically based on screen size
-            height={chartHeight} // Set the height of the chart
-            chartConfig={{
-              backgroundColor: '#fff',
-              backgroundGradientFrom: '#fff',
-              backgroundGradientTo: '#fff',
-              decimalPlaces: 0, // Optional: for decimal places in data
-              color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`, // Line color (green)
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color
-              propsForLabels: {
-                fontSize: 12, // Set font size for axis labels
-                fontWeight: '500', // Use medium weight for labels
-              },
-              style: {
-                borderRadius: 16,
-                paddingVertical: 32, // Add more padding for the chart container
-              },
-              gridLines: {
-                drawBorder: false, // Disable border around the chart
-                color: '#d3d3d3', // Lighter grid color for better contrast
-              },
-              propsForDots: {
-                r: '4', // Dot radius for the data points
-                strokeWidth: '2', // Stroke width for the dots
-                stroke: '#4CAF50', // Dot color
-              },
-            }}
-            bezier // Optional: adds a smooth curve to the line chart
-            style={{
-              marginVertical: 16,
-              paddingVertical: 24,
-              borderRadius: 16,
-              backgroundColor: '#fff', // Set background color for the chart container
-              elevation: 5, // Adds shadow for better separation from background
-            }}
-          />
-        </View>
-
+        {/* Questions and Answers */}
         <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           Questions
         </Text>
-        {questions.map((question: any, index: number) => (
+        {answers.map((answer: any, index: number) => (
           <View
             key={index}
             className="flex-row justify-between items-center bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2"
           >
             <Text className="text-gray-800 dark:text-gray-200">
-              {question.text}
+              Q{answer.ques_no}: {answer.answer}
             </Text>
             <Ionicons
-              name={question.correct ? 'checkmark-circle' : 'close-circle'}
+              name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
               size={20}
-              color={question.correct ? 'green' : 'red'}
+              color={answer.is_correct ? 'green' : 'red'}
             />
           </View>
         ))}
 
+        {/* Insights */}
         <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
           Insights
         </Text>
-        {insights.map((insight: any, index: number) => (
-          <View
-            key={index}
-            className="flex-row justify-between items-center bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2"
+        <Text className="text-gray-800 dark:text-gray-200">
+          Great job! You scored {percent}%. Keep up the good work!
+        </Text>
+
+        {/* Scan New Worksheet Button */}
+        <View className="flex-1 items-center justify-center w-full mt-8">
+          <TouchableOpacity
+            onPress={() => {
+              setGradingResult(null);
+              setImages([]);
+              setTakingPicture(true);
+            }}
+            className="flex-row items-center justify-center bg-blue-600 px-5 py-3 rounded-md shadow active:opacity-80"
           >
-            <Text className="text-gray-800 dark:text-gray-200">{insight}</Text>
-          </View>
-        ))}
-        <View className="flex-1 items-center justify-center w-full">
-          <View className="flex-1 items-center justify-center w-72 mb-16 mt-8 py-4">
-            <TouchableOpacity
-              onPress={() => {
-                setGradingResult(null);
-                setImages([]);
-                setTakingPicture(true);
-              }}
-              className="flex-row items-center justify-center bg-blue-600 px-5 py-3 rounded-md shadow active:opacity-80"
-            >
-              <Ionicons name="camera-outline" size={20} color="white" />
-              <Text className="text-white text-xl font-bold ml-2">
-                Scan New Worksheet
-              </Text>
-            </TouchableOpacity>
-          </View>
+            <Ionicons name="camera-outline" size={20} color="white" />
+            <Text className="text-white text-xl font-bold ml-2">
+              Scan New Worksheet
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     );
