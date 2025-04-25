@@ -2,7 +2,7 @@ import {
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import {
   Alert,
   FlatList,
@@ -23,11 +23,12 @@ import axios from "axios";
 import Constants from "expo-constants";
 import FormData from "form-data";
 import AnswerCard from "@/components/AnswerCard";
+import mockData from '@/assets/demo_data/graded_report.json';
 
-// const uri = Constants.expoConfig?.hostUri?.split(':').shift()?.concat(':5001') || 'localhost';
-const apiUrl = `https://nice-seas-vanish.loca.lt/api/autograde`;
+const debug_mode = true; // Set to true to enable debug mode
+const apiUrl = `https://cute-friends-kneel.loca.lt/api/autograde`;
 
-export default function ScanPage() {
+export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [images, setImages] = useState<string[]>([]);
@@ -43,8 +44,8 @@ export default function ScanPage() {
   if (!permission.granted) {
     console.log("Camera permission to be granted");
     return (
-      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-neutral-900">
-        <Text className="text-lg text-center text-gray-800 dark:text-gray-200 mb-6">
+      <View className="flex-1 items-center justify-center px-6 bg-gray-100">
+        <Text className="text-lg text-center text-gray-800 mb-6">
           We need your permission to use the camera
         </Text>
         <TouchableOpacity
@@ -80,41 +81,13 @@ export default function ScanPage() {
     })
   }
 
-  const debug_mode = true; // Set to true to enable debug mode
   const autoGrade = async () => {
 
     setIsGrading(true);
 
     if (debug_mode === true) {
       console.log("Debug mode enabled. Using mock data.");
-      setGradingResult({
-        "1": [
-          {
-            answers: [
-              { ques_no: 1, answer: "Some long answer that is correct and should be truncated", is_correct: true, explanation: "Correct answer" },
-              { ques_no: 2, answer: "Some long answer that is correct and should be truncated", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
-              { ques_no: 3, answer: "Some long answer that is correct and should be truncated", is_correct: true, explanation: "Correct answer" },
-              { ques_no: 4, answer: "Some long answer that is correct and should be truncated", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
-              { ques_no: 5, answer: "Some long answer that is correct and should be truncated", is_correct: true, explanation: "Correct answer" },
-              { ques_no: 6, answer: "Some long answer that is correct and should be truncated", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
-              { ques_no: 7, answer: "C", is_correct: true, explanation: "Correct answer" },
-              { ques_no: 8, answer: "D", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
-              { ques_no: 9, answer: "A", is_correct: true, explanation: "Correct answer" },
-              { ques_no: 10, answer: "B", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
-            ],
-            score: 5,
-            percent: 50,
-            student_name: "Jintu Kumar Jhunnu",
-            grade: 4,
-            section: "A",
-            subject: "Mathematics",
-            date: new Date().toISOString(),
-            out_of: 10,
-            focus_areas: ["A learning objective that the student did not meet", "Another LO that the student did not meet"],
-            insights: "The student struggled with multiple-choice questions and could not add large numbers. He also did not understand the commutative property of addition."
-          },
-        ],
-      });
+      setGradingResult(mockData);
       setIsGrading(false);
       return;
     }
@@ -178,26 +151,25 @@ export default function ScanPage() {
     });
 
     return (
-      <ScrollView className="flex-1 px-6 py-8 bg-white dark:bg-neutral-900">
-        {/* Header Information */}
-        <View className="flex-row items-center justify-between mb-4">
+      <ScrollView className="flex-1 px-6 bg-gray-100">
+        <View className="flex-row items-center justify-between">
           <View>
-            <View className="flex-row items-center space-x-4">
-              <Text className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Worksheet #{firstKey}
-              </Text>
-              <Text className="text-lg text-gray-500 dark:text-white">
+            <View className="">
+            <Text className="text-lg text-gray-500">
                 {formattedDate}
               </Text>
+              <Text className="text-2xl font-semibold text-gray-900">
+                Worksheet #{firstKey}
+              </Text>
             </View>
-            <Text className="self-start px-3 py-1 rounded-full bg-blue-400 text-white text-sm font-semibold mt-1 mb-6">
+            <Text className="self-start px-3 py-1 rounded-full bg-purple-500 text-white text-sm font-semibold mt-2">
               {subject.toUpperCase()}
             </Text>
-            <Text className="text-lg text-gray-900 dark:text-white">
+            <Text className="text-lg text-gray-900 mt-2">
               <Text className="text-gray-500">Student: </Text>
               {`${student_name}`}
             </Text>
-            <Text className="text-lg text-gray-900 dark:text-white">
+            <Text className="text-lg text-gray-900">
               <Text className="text-gray-500">Class: </Text>
               {`${grade}-${section}`}
             </Text>
@@ -207,35 +179,38 @@ export default function ScanPage() {
             <View className="mx-4 mb-4">
               <CircularProgress
                 value={percent}
-                duration={1000}
+                showProgressValue={false}
+                duration={1500}
                 maxValue={100}
-                radius={45}
+                radius={53}
+                inActiveStrokeColor={'#d3d3d3'}
                 inActiveStrokeWidth={25}
                 activeStrokeWidth={25}
-                inActiveStrokeColor={'#2ecc71'}
+                activeStrokeColor={
+                  percent < 30
+                    ? 'red'
+                    : percent < 60
+                    ? 'orange'
+                    : percent < 80
+                    ? 'blue'
+                    : 'green'
+                }
                 inActiveStrokeOpacity={0.2}
-                progressValueColor={'#000'}
-                title={'%'}
+                progressValueColor={'#fff'}
+                title={score.toString()}
+                titleColor={'#000'}
+                titleStyle={{ fontSize: 28 }}
+                subtitle={`out of ${out_of}`}
+                subtitleColor={'#000'}
+                subtitleStyle={{ fontSize: 14 }}
               />
-            </View>
-            <View className="flex-row items-center space-x-2">
-              <Text className="text-5xl font-semibold text-gray-900 dark:text-white">
-                {score}
-              </Text>
-              <View className="items-center justify-center">
-                <Text className="text-md">out of</Text>
-                <Text className="text-lg ">
-                  {out_of}
-                </Text>
-              </View>
-
             </View>
           </View>
         </View>
 
         {/* Questions and Answers */}
-        <View className="mt-2 mb-1">
-          <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <View className="mt-8 mb-1">
+          <Text className="text-xl font-semibold text-gray-900 mb-4">
             Responses
           </Text>
 
@@ -246,40 +221,38 @@ export default function ScanPage() {
 
         <View className="mt-2 mb-1">
           {/* Focus Areas */}
-          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
+          <Text className="text-xl font-semibold text-gray-900 mt-4 mb-4">
             Focus Areas
           </Text>
           {focus_areas.length > 0 ? (
-            <FlatList
-              data={focus_areas}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <View className="bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2">
-                  <Text className="text-gray-800 dark:text-gray-200">
-                    {item}
-                  </Text>
-                </View>
-              )}
-            />
+            focus_areas.map((item: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined, index: Key | null | undefined) => (
+              <View
+                key={index}
+                className="bg-white px-4 py-3 rounded-lg mb-2"
+              >
+                <Text className="text-gray-800">{item}</Text>
+              </View>
+            ))
           ) : (
-            <Text className="text-gray-800 dark:text-gray-200">
+            <Text className="text-gray-800">
               No focus areas identified.
             </Text>
           )}
+
         </View>
 
 
         <View className="mt-2 mb-1">
-          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
+          <Text className="text-xl font-semibold text-gray-900 mt-4 mb-4">
             Insights
           </Text>
-          <Text className="text-gray-800 dark:text-gray-200 mb-2">
+          <Text className="text-gray-800 mb-2">
             {insights}
           </Text>
         </View>
 
         {/* Scan New Worksheet Button */}
-        <View className="flex-1 items-center justify-center w-full mt-16 mb-4">
+        <View className="flex-1 items-center justify-center w-full mt-8 mb-32">
           <TouchableOpacity
             onPress={() => {
               setGradingResult(null);
@@ -305,22 +278,24 @@ export default function ScanPage() {
     }
 
     return (
-      <View className="flex-1 items-center justify-center px-6 py-8 bg-white dark:bg-neutral-900">
-        <Text className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <View className="flex-1 items-center justify-center bg-gray-100">
+        <Text className="text-2xl font-semibold text-gray-500 mb-6">
           Captured Images
         </Text>
         <View className="flex-1w-full items-center justify-center">
           <FlatList
             data={images}
             keyExtractor={(item, index) => index.toString()}
-            numColumns={2}
-            className="flex-1 border border-gray-300 rounded-lg p-2"
+            numColumns={3}
+            className="flex-1 border border-gray-200 rounded-lg p-4"
             contentContainerStyle={{ paddingHorizontal: 8 }}
             style={{
-              maxHeight: 300
+              height: 275,
+              maxHeight: 275,
+              maxWidth: 350,
             }}
             renderItem={({ item, index }) => (
-              <View className="relative w-36 h-36 mx-2 my-2">
+              <View className="relative w-24 h-24 mx-2 my-2">
                 <Image
                   source={{ uri: item }}
                   resizeMode="contain"
@@ -334,26 +309,27 @@ export default function ScanPage() {
                   }}
                   className="absolute top-1 right-1 bg-black bg-opacity-60 rounded-full p-1"
                 >
-                  <Text className="text-white text-xs font-bold"> × </Text>
+                  <Text className="text-white text-md font-bold">  X  </Text>
                 </TouchableOpacity>
               </View>
             )}
           />
         </View>
-        <View className="w-64 mb-16">
-          <View className="mt-8 py-4">
+        <View className="w-48 mt-8">
+          <View className="">
             <TouchableOpacity
               onPress={() => setTakingPicture(true)}
-              className="flex-row items-center justify-center bg-blue-500 px-5 py-3 rounded-md shadow active:opacity-80"
+              className="flex-row items-center justify-center bg-gray-100 border border-blue-500 py-3 rounded-md active:opacity-80"
             >
-              <Ionicons name="camera-outline" size={20} color="white" />
-              <Text className="text-white text-xl font-bold ml-2">Scan Next Page</Text>
+              <Text className="text-blue-500 text-xl font-bold ml-2">Scan Next Page</Text>
             </TouchableOpacity>
           </View>
-          <View className="py-4">
+        </View>
+        <View className="w-64 mt-16 mb-32">
+          <View className="">
             <TouchableOpacity
               onPress={autoGrade}
-              className="flex-row items-center justify-center bg-green-600 px-5 py-3 rounded-md shadow active:opacity-80"
+              className="flex-row items-center justify-center bg-blue-600 px-5 py-4 rounded-md shadow active:opacity-80"
             >
               <Ionicons name="sparkles-outline" size={20} color="white" />
               <Text className="text-white text-xl font-bold ml-2">Start AI Grading!</Text>
@@ -379,10 +355,10 @@ export default function ScanPage() {
         >
           <View className="h-full w-full"></View>
         </CameraView>
-        <View className="absolute bottom-0 left-0 right-0 items-center justify-center px-8 py-16">
+        <View className="absolute bottom-0 left-0 right-0 items-center justify-center px-8 py-28">
           <TouchableOpacity onPress={takePicture}>
             <View className="w-24 h-24 rounded-full border-4 border-white items-center justify-center">
-              <View className="w-20 h-20 rounded-full bg-white" />
+              <View className="w-20 h-20 rounded-full bg-gray-100" />
             </View>
           </TouchableOpacity>
         </View>
@@ -392,9 +368,9 @@ export default function ScanPage() {
 
   if (isGrading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-900">
+      <View className="flex-1 items-center justify-center bg-gray-100">
         <ActivityIndicator size="large" color="#4CAF50" />
-        <Text className="text-lg font-medium text-gray-900 dark:text-white mt-4">
+        <Text className="text-lg font-medium text-gray-900 mt-4">
           Grading your worksheets, this may take a few moments...
         </Text>
       </View>
@@ -402,7 +378,7 @@ export default function ScanPage() {
   }
 
   return (
-    <View className="flex-1 bg-gray-100 dark:bg-neutral-950">
+    <View className="flex-1 bg-gray-100">
       {gradingResult
         ? renderGradingResult()
         : takingPicture

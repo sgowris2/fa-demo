@@ -3,45 +3,68 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Ionicons } from '@expo/vector-icons';
+import CustomHeader from '@/components/CustomHeader';
+import { View } from 'react-native';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
+    <View className="flex-1 bg-gray-100">
+      <Tabs
+        screenOptions={{
+          header: () => <CustomHeader title="Home" />,
+          tabBarButton: HapticTab,
+          tabBarInactiveTintColor: "#B0B0B0",
+          tabBarStyle: Platform.select({
+            default: {
+              position: 'absolute',
+              alignItems: 'center',
+              flexDirection: 'column',
+              height: 70,
+              backgroundColor: '#FFFFFF',
+              shadowColor: '#000',
+              boxShadow: '0 0 12px rgba(0, 0, 0, 0.1)',
+              shadowOffset: { width: 0, height: 2 },
+            },
+          }),
+          tabBarItemStyle: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 6,
+            marginBottom: 4
           },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen name="index" options={{ href: null }} />
-      <Tabs.Screen
-        name="screens/scan"
-        options={{
-          title: 'Scan Worksheet',
-          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="photo-camera" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="screens/report"
-        options={{
-          title: 'Reports',
-          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="bar-chart" color={color} />,
-        }}
-      />
-    </Tabs>
+          tabBarLabelStyle: {
+            fontSize: 12,
+            marginTop: 2,
+          },
+          tabBarIconStyle: {
+            marginBottom: 2,
+          },
+        }}>
+        <Tabs.Screen name="index" options={{ href: null }} />
+        <Tabs.Screen
+          name="screens/quiz"
+          options={{
+            title: 'Quiz',
+            tabBarIcon: ({ color }) => <Ionicons size={24} name="stats-chart-outline" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="screens/worksheets"
+          options={{
+            title: 'Worksheets',
+            tabBarIcon: ({ color }) => <Ionicons size={24} name="documents-outline" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="screens/scan"
+          options={{
+            title: 'Scan',
+            tabBarIcon: ({ color }) => <Ionicons size={24} name="scan-circle-outline" color={color} />,
+          }}
+        />
+      </Tabs>
+    </View>
   );
 }

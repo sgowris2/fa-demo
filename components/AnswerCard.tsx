@@ -11,29 +11,30 @@ const AnswerCard = ({ answer }: { answer: any }) => {
             onPress={() => setExpanded(!expanded)}
             className="w-full"
         >
-            <View className="flex-col bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2">
+            <View className="flex-col bg-white px-4 py-3 rounded-lg mb-2">
                 {/* Top row */}
                 {!expanded && (
-                    <View className="flex-row items-center">
+                    <View className="flex-row items-center justify-between">
                         <View className="w-1/2 flex-row items-center">
                             <Ionicons
                                 name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
                                 size={24}
-                                color={answer.is_correct ? 'green' : 'red'}
+                                color={answer.is_correct ? 'teal' : 'red'}
                                 className="mr-2"
                             />
                             <Text numberOfLines={1}
-                                ellipsizeMode="tail" className="text-md font-medium text-gray-800 dark:text-gray-200">
-                                Question {answer.ques_no}
+                                ellipsizeMode="tail" className="text-md ml-4 font-medium text-gray-800">
+                                Q-{answer.ques_no}
                             </Text>
                         </View>
                         {/* Answer summary */}
                         <Text
                             numberOfLines={1}
                             ellipsizeMode="tail"
-                            className="text-md text-gray-600 dark:text-gray-300 mx-4"
+                            className="text-md text-gray-400 mx-4"
                         >
-                            {answer.answer}
+                            Ans: 
+                            <Text className="text-md text-gray-800 font-semibold"> {answer.answer} </Text>
                         </Text>
                         <Ionicons
                             name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -56,7 +57,7 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                                     className="mr-2"
                                 />
                                 <Text numberOfLines={1}
-                                    ellipsizeMode="tail" className="text-md font-medium text-gray-800 dark:text-gray-200">
+                                    ellipsizeMode="tail" className="text-md font-medium text-gray-800">
                                     Question {answer.ques_no}
                                 </Text>
                             </View>
@@ -70,11 +71,11 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                             </View>
                         </View>
                         <View className="mt-4">
-                            <Text className="text-sm text-gray-600 dark:text-gray-300 my-1">
+                            <Text className="text-md text-gray-600 my-1">
                                 <Text className="font-semibold">Answer: </Text>
                                 <Text>{answer.answer}</Text>
                             </Text>
-                            <Text className="text-sm text-gray-600 dark:text-gray-300 my-1">
+                            <Text className="text-md text-gray-600 my-1">
                                 <Text className="font-semibold">Explanation: </Text>
                                 {answer.explanation}
                             </Text>
