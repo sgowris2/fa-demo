@@ -2,7 +2,7 @@ import {
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   Alert,
   FlatList,
@@ -16,11 +16,13 @@ import {
 import { Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import { ProgressCircle } from "react-native-progress/Circle";
+import CircularProgress from 'react-native-circular-progress-indicator';
+
 import { LineChart } from "react-native-chart-kit";
 import axios from "axios";
 import Constants from "expo-constants";
 import FormData from "form-data";
+import AnswerCard from "@/components/AnswerCard";
 
 // const uri = Constants.expoConfig?.hostUri?.split(':').shift()?.concat(':5001') || 'localhost';
 const apiUrl = `https://nice-seas-vanish.loca.lt/api/autograde`;
@@ -62,6 +64,7 @@ export default function ScanPage() {
     if (photo?.uri) {
       setImages((prev) => [...prev, photo.uri]);
       setTakingPicture(false);
+      ref.current?.pausePreview();
     }
   };
 
@@ -77,13 +80,50 @@ export default function ScanPage() {
     })
   }
 
+  const debug_mode = true; // Set to true to enable debug mode
   const autoGrade = async () => {
+
+    setIsGrading(true);
+
+    if (debug_mode === true) {
+      console.log("Debug mode enabled. Using mock data.");
+      setGradingResult({
+        "1": [
+          {
+            answers: [
+              { ques_no: 1, answer: "Some long answer that is correct and should be truncated", is_correct: true, explanation: "Correct answer" },
+              { ques_no: 2, answer: "Some long answer that is correct and should be truncated", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
+              { ques_no: 3, answer: "Some long answer that is correct and should be truncated", is_correct: true, explanation: "Correct answer" },
+              { ques_no: 4, answer: "Some long answer that is correct and should be truncated", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
+              { ques_no: 5, answer: "Some long answer that is correct and should be truncated", is_correct: true, explanation: "Correct answer" },
+              { ques_no: 6, answer: "Some long answer that is correct and should be truncated", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
+              { ques_no: 7, answer: "C", is_correct: true, explanation: "Correct answer" },
+              { ques_no: 8, answer: "D", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
+              { ques_no: 9, answer: "A", is_correct: true, explanation: "Correct answer" },
+              { ques_no: 10, answer: "B", is_correct: false, explanation: "Some explanation about why the selected answer is wrong and how the student can try to solve the question again with a hint." },
+            ],
+            score: 5,
+            percent: 50,
+            student_name: "Jintu Kumar Jhunnu",
+            grade: 4,
+            section: "A",
+            subject: "Mathematics",
+            date: new Date().toISOString(),
+            out_of: 10,
+            focus_areas: ["A learning objective that the student did not meet", "Another LO that the student did not meet"],
+            insights: "The student struggled with multiple-choice questions and could not add large numbers. He also did not understand the commutative property of addition."
+          },
+        ],
+      });
+      setIsGrading(false);
+      return;
+    }
 
     if (images.length === 0) {
       Alert.alert("No images", "Please take at least one picture before auto-grading.");
-      return;
+      return renderPictureList();
     }
-    setIsGrading(true);
+
     console.log("Grading images:", images);
     try {
       const uploadImages = async () => {
@@ -129,8 +169,7 @@ export default function ScanPage() {
     const result = gradingResult[firstKey][0]; // Access the first result in the array
 
     // Extract relevant data
-    const { answers, score, percent, student_name, subject, date, out_of } = result;
-
+    const { answers, score, percent, student_name, grade, section, subject, date, out_of, focus_areas, insights } = result;
     // Format the date
     const formattedDate = new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -141,69 +180,106 @@ export default function ScanPage() {
     return (
       <ScrollView className="flex-1 px-6 py-8 bg-white dark:bg-neutral-900">
         {/* Header Information */}
-        <Text className="text-xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">
-          Worksheet Results - {subject.toUpperCase()}
-        </Text>
-        <Text className="text-md font-semibold text-gray-900 dark:text-white mb-2">
-          {student_name}
-        </Text>
-        <Text className="text-md font-semibold text-gray-900 dark:text-white mb-2">
-          {formattedDate}
-        </Text>
+        <View className="flex-row items-center justify-between mb-4">
+          <View>
+            <View className="flex-row items-center space-x-4">
+              <Text className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Worksheet #{firstKey}
+              </Text>
+              <Text className="text-lg text-gray-500 dark:text-white">
+                {formattedDate}
+              </Text>
+            </View>
+            <Text className="self-start px-3 py-1 rounded-full bg-blue-400 text-white text-sm font-semibold mt-1 mb-6">
+              {subject.toUpperCase()}
+            </Text>
+            <Text className="text-lg text-gray-900 dark:text-white">
+              <Text className="text-gray-500">Student: </Text>
+              {`${student_name}`}
+            </Text>
+            <Text className="text-lg text-gray-900 dark:text-white">
+              <Text className="text-gray-500">Class: </Text>
+              {`${grade}-${section}`}
+            </Text>
+          </View>
 
-        {/* Circular Percent Gauge */}
-        <View className="items-center mb-6">
-          <ProgressCircle
-            progress={percent / 100}
-            size={100}
-            thickness={12}
-            color="#4CAF50"
-            unfilledColor="#E0E0E0"
-            showsText={true}
-            textStyle={{
-              fontSize: 20,
-              fontWeight: 'bold',
-              color: '#000000',
-            }}
-            formatText={() => `${percent}%`}
-          />
+          <View className='items-center justify-center'>
+            <View className="mx-4 mb-4">
+              <CircularProgress
+                value={percent}
+                duration={1000}
+                maxValue={100}
+                radius={45}
+                inActiveStrokeWidth={25}
+                activeStrokeWidth={25}
+                inActiveStrokeColor={'#2ecc71'}
+                inActiveStrokeOpacity={0.2}
+                progressValueColor={'#000'}
+                title={'%'}
+              />
+            </View>
+            <View className="flex-row items-center space-x-2">
+              <Text className="text-5xl font-semibold text-gray-900 dark:text-white">
+                {score}
+              </Text>
+              <View className="items-center justify-center">
+                <Text className="text-md">out of</Text>
+                <Text className="text-lg ">
+                  {out_of}
+                </Text>
+              </View>
+
+            </View>
+          </View>
         </View>
 
-        {/* Score Information */}
-        <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Score: {score}/{out_of}
-        </Text>
-
         {/* Questions and Answers */}
-        <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Questions
-        </Text>
-        {answers.map((answer: any, index: number) => (
-          <View
-            key={index}
-            className="flex-row justify-between items-center bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2"
-          >
-            <Text className="text-gray-800 dark:text-gray-200">
-              Q{answer.ques_no}: {answer.answer}
-            </Text>
-            <Ionicons
-              name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
-              size={20}
-              color={answer.is_correct ? 'green' : 'red'}
-            />
-          </View>
-        ))}
+        <View className="mt-2 mb-1">
+          <Text className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Responses
+          </Text>
 
-        {/* Insights */}
-        <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
-          Insights
-        </Text>
-        <Text className="text-gray-800 dark:text-gray-200">
-          Great job! You scored {percent}%. Keep up the good work!
-        </Text>
+          {answers.map((answer: any, index: number) => (
+            <AnswerCard key={index} answer={answer} />
+          ))}
+        </View>
+
+        <View className="mt-2 mb-1">
+          {/* Focus Areas */}
+          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
+            Focus Areas
+          </Text>
+          {focus_areas.length > 0 ? (
+            <FlatList
+              data={focus_areas}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View className="bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-lg mb-2">
+                  <Text className="text-gray-800 dark:text-gray-200">
+                    {item}
+                  </Text>
+                </View>
+              )}
+            />
+          ) : (
+            <Text className="text-gray-800 dark:text-gray-200">
+              No focus areas identified.
+            </Text>
+          )}
+        </View>
+
+
+        <View className="mt-2 mb-1">
+          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">
+            Insights
+          </Text>
+          <Text className="text-gray-800 dark:text-gray-200 mb-2">
+            {insights}
+          </Text>
+        </View>
 
         {/* Scan New Worksheet Button */}
-        <View className="flex-1 items-center justify-center w-full mt-8">
+        <View className="flex-1 items-center justify-center w-full mt-16 mb-4">
           <TouchableOpacity
             onPress={() => {
               setGradingResult(null);
@@ -213,7 +289,7 @@ export default function ScanPage() {
             className="flex-row items-center justify-center bg-blue-600 px-5 py-3 rounded-md shadow active:opacity-80"
           >
             <Ionicons name="camera-outline" size={20} color="white" />
-            <Text className="text-white text-xl font-bold ml-2">
+            <Text className="text-white text-lg font-semibold ml-4">
               Scan New Worksheet
             </Text>
           </TouchableOpacity>
@@ -223,7 +299,11 @@ export default function ScanPage() {
   };
 
   const renderPictureList = () => {
-    console.log(images);
+
+    if (images.length === 0) {
+      return renderCamera(); // Redirect to camera view if no images
+    }
+
     return (
       <View className="flex-1 items-center justify-center px-6 py-8 bg-white dark:bg-neutral-900">
         <Text className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -239,12 +319,24 @@ export default function ScanPage() {
             style={{
               maxHeight: 300
             }}
-            renderItem={({ item }) => (
-              <Image
-                source={{ uri: item }}
-                contentFit="cover"
-                className="w-36 h-36 rounded-lg mx-2 my-2 shadow-md"
-              />
+            renderItem={({ item, index }) => (
+              <View className="relative w-36 h-36 mx-2 my-2">
+                <Image
+                  source={{ uri: item }}
+                  resizeMode="contain"
+                  className="w-full h-full rounded-lg shadow-md"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    const newImages = [...images];
+                    newImages.splice(index, 1);
+                    setImages(newImages);
+                  }}
+                  className="absolute top-1 right-1 bg-black bg-opacity-60 rounded-full p-1"
+                >
+                  <Text className="text-white text-xs font-bold"> × </Text>
+                </TouchableOpacity>
+              </View>
             )}
           />
         </View>
@@ -274,6 +366,7 @@ export default function ScanPage() {
 
   const renderCamera = () => {
     console.log('Rendering camera');
+    ref.current?.resumePreview();
     return (
       <View className="flex-1 relative">
         <CameraView
