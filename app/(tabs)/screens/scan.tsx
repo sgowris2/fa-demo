@@ -2,7 +2,8 @@ import {
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
-import { useRef, useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
+import { useRef, useState, useEffect, useCallback, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Alert,
   FlatList,
@@ -24,17 +25,29 @@ import Constants from "expo-constants";
 import FormData from "form-data";
 import AnswerCard from "@/components/AnswerCard";
 import mockData from '@/assets/demo_data/graded_report.json';
+import { useRouter } from 'expo-router';
 
 const debug_mode = true; // Set to true to enable debug mode
 const apiUrl = `https://cute-friends-kneel.loca.lt/api/autograde`;
 
+
 export default function ScanScreen() {
+  const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [images, setImages] = useState<string[]>([]);
   const [takingPicture, setTakingPicture] = useState(true);
   const [isGrading, setIsGrading] = useState(false);
   const [gradingResult, setGradingResult] = useState<any | null>(null);
+
+  // Reset state when navigating to this tab
+  useFocusEffect(
+    useCallback(() => {
+      // Reset grading result and images
+      setGradingResult(null);
+      setImages([]);
+    }, [])
+  );
 
   if (!permission) {
     console.log("Camera permission not set");
@@ -134,7 +147,165 @@ export default function ScanScreen() {
     }
   };
 
+  const renderCamera = () => {
+    console.log('Rendering camera');
+    ref.current?.resumePreview();
+    return (
+      <View className="flex-1 relative">
+        <CameraView
+          className="flex-1 w-full"
+          ref={ref}
+          mode="picture"
+          facing="back"
+          mute={true}
+          responsiveOrientationWhenOrientationLocked
+        >
+          <View className="h-full w-full"></View>
+        </CameraView>
+        <View className="absolute bottom-0 left-0 right-0 items-center justify-center px-8 py-28">
+          <TouchableOpacity onPress={takePicture}>
+            <View className="w-24 h-24 rounded-full border-4 border-white items-center justify-center">
+              <View className="w-20 h-20 rounded-full bg-gray-100" />
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderPictureList = () => {
+    if (images.length === 0) {
+      return renderCamera(); // Redirect to camera view if no images
+    }
+
+    return (
+      <View className="flex-1 items-center justify-center bg-gray-100 px-4 py-6">
+        {/* Header */}
+        <Text className="text-2xl font-bold text-gray-800 mb-6">
+          Captured Images
+        </Text>
+
+        {/* Image Grid */}
+        <View className="w-full items-center mb-8">
+          <FlatList
+            data={images}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={3}
+            className="flex-1 border border-gray-300 rounded-lg p-4 bg-white shadow-md"
+            contentContainerStyle={{ paddingHorizontal: 8 }}
+            style={{
+              height: 275,
+              maxHeight: 275,
+              maxWidth: 400,
+            }}
+            renderItem={({ item, index }) => (
+              <View className="relative w-24 h-24 mx-2 my-2">
+                {/* Image */}
+                <Image
+                  source={{ uri: item }}
+                  resizeMode="contain"
+                  className="w-full h-full rounded-lg shadow-md"
+                />
+                {/* Delete Button */}
+                <TouchableOpacity
+                  onPress={() => {
+                    const newImages = [...images];
+                    newImages.splice(index, 1);
+                    setImages(newImages);
+                  }}
+                  className="absolute top-1 right-1 bg-red-600 bg-opacity-80 rounded-full p-1"
+                >
+                  <Ionicons name="close" size={16} color="white" />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        </View>
+
+        {/* Scan Next Page Button */}
+        <View className="mt-8">
+          <TouchableOpacity
+            onPress={() => setTakingPicture(true)}
+            className="flex-row items-center justify-center bg-blue-500 px-6 py-3 rounded-lg shadow-md active:opacity-80"
+          >
+            <Ionicons name="camera-outline" size={20} color="white" />
+            <Text className="text-white text-lg font-semibold ml-3">
+              Scan Next Page
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Start AI Grading Button */}
+        <View className="mt-8">
+          <TouchableOpacity
+            onPress={autoGrade}
+            className="flex-row items-center justify-center bg-green-600 px-6 py-4 rounded-lg shadow-md active:opacity-80"
+          >
+            <Ionicons name="sparkles-outline" size={20} color="white" />
+            <Text className="text-white text-lg font-semibold ml-3">
+              Start AI Grading!
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderGradingSubmitted = () => {
+    return (
+
+      <View className="flex-1 items-center justify-center bg-gray-100 px-6">
+        {/* Success Icon */}
+        <View className="bg-green-100 p-6 rounded-full mb-6">
+          <Ionicons name="checkmark-circle-outline" size={64} color="green" />
+        </View>
+
+        {/* Success Message */}
+        <Text className="text-2xl font-bold text-gray-900 text-center mb-4">
+          Worksheets Submitted!
+        </Text>
+        <Text className="text-lg text-gray-700 text-center mb-8">
+          Your worksheets have been successfully submitted for grading. You can view the results once they are ready.
+        </Text>
+
+        {/* Navigation Buttons */}
+        <View className="space-y-6 px-6">
+          {/* View Worksheets Button */}
+          <TouchableOpacity
+            onPress={() => {
+              setGradingResult(null);
+              setImages([]);
+              router.push('/(tabs)/screens/worksheets')
+            }}
+            className="flex-row items-center justify-center bg-blue-600 px-6 py-4 rounded-lg shadow-md active:opacity-80"
+          >
+            <Ionicons name="documents-outline" size={24} color="white" />
+            <Text className="text-white text-lg font-semibold ml-3">
+              View Worksheets
+            </Text>
+          </TouchableOpacity>
+
+          {/* Scan New Worksheet Button */}
+          <TouchableOpacity
+            onPress={() => {
+              setGradingResult(null);
+              setImages([]);
+              setTakingPicture(true);
+            }}
+            className="flex-row items-center justify-center bg-green-600 px-6 py-4 rounded-lg shadow-md active:opacity-80"
+          >
+            <Ionicons name="scan-circle-outline" size={24} color="white" />
+            <Text className="text-white text-lg font-semibold ml-3">
+              Scan New Worksheet
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   const renderGradingResult = () => {
+
     if (!gradingResult) return null;
 
     // Unpack the API response
@@ -155,9 +326,7 @@ export default function ScanScreen() {
         <View className="flex-row items-center justify-between">
           <View>
             <View className="">
-            <Text className="text-lg text-gray-500">
-                {formattedDate}
-              </Text>
+
               <Text className="text-2xl font-semibold text-gray-900">
                 Worksheet #{firstKey}
               </Text>
@@ -165,13 +334,17 @@ export default function ScanScreen() {
             <Text className="self-start px-3 py-1 rounded-full bg-purple-500 text-white text-sm font-semibold mt-2">
               {subject.toUpperCase()}
             </Text>
-            <Text className="text-lg text-gray-900 mt-2">
+            <Text className="text-xl text-gray-900 mt-8">
               <Text className="text-gray-500">Student: </Text>
               {`${student_name}`}
             </Text>
-            <Text className="text-lg text-gray-900">
+            <Text className="text-xl text-gray-900">
               <Text className="text-gray-500">Class: </Text>
               {`${grade}-${section}`}
+            </Text>
+            <Text className="text-xl text-gray-900">
+              <Text className="text-gray-500">Date: </Text>
+              {formattedDate}
             </Text>
           </View>
 
@@ -190,10 +363,10 @@ export default function ScanScreen() {
                   percent < 30
                     ? 'red'
                     : percent < 60
-                    ? 'orange'
-                    : percent < 80
-                    ? 'blue'
-                    : 'green'
+                      ? 'orange'
+                      : percent < 80
+                        ? 'blue'
+                        : 'green'
                 }
                 inActiveStrokeOpacity={0.2}
                 progressValueColor={'#fff'}
@@ -271,101 +444,6 @@ export default function ScanScreen() {
     );
   };
 
-  const renderPictureList = () => {
-
-    if (images.length === 0) {
-      return renderCamera(); // Redirect to camera view if no images
-    }
-
-    return (
-      <View className="flex-1 items-center justify-center bg-gray-100">
-        <Text className="text-2xl font-semibold text-gray-500 mb-6">
-          Captured Images
-        </Text>
-        <View className="flex-1w-full items-center justify-center">
-          <FlatList
-            data={images}
-            keyExtractor={(item, index) => index.toString()}
-            numColumns={3}
-            className="flex-1 border border-gray-200 rounded-lg p-4"
-            contentContainerStyle={{ paddingHorizontal: 8 }}
-            style={{
-              height: 275,
-              maxHeight: 275,
-              maxWidth: 350,
-            }}
-            renderItem={({ item, index }) => (
-              <View className="relative w-24 h-24 mx-2 my-2">
-                <Image
-                  source={{ uri: item }}
-                  resizeMode="contain"
-                  className="w-full h-full rounded-lg shadow-md"
-                />
-                <TouchableOpacity
-                  onPress={() => {
-                    const newImages = [...images];
-                    newImages.splice(index, 1);
-                    setImages(newImages);
-                  }}
-                  className="absolute top-1 right-1 bg-black bg-opacity-60 rounded-full p-1"
-                >
-                  <Text className="text-white text-md font-bold">  X  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
-        </View>
-        <View className="w-48 mt-8">
-          <View className="">
-            <TouchableOpacity
-              onPress={() => setTakingPicture(true)}
-              className="flex-row items-center justify-center bg-gray-100 border border-blue-500 py-3 rounded-md active:opacity-80"
-            >
-              <Text className="text-blue-500 text-xl font-bold ml-2">Scan Next Page</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View className="w-64 mt-16 mb-32">
-          <View className="">
-            <TouchableOpacity
-              onPress={autoGrade}
-              className="flex-row items-center justify-center bg-blue-600 px-5 py-4 rounded-md shadow active:opacity-80"
-            >
-              <Ionicons name="sparkles-outline" size={20} color="white" />
-              <Text className="text-white text-xl font-bold ml-2">Start AI Grading!</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderCamera = () => {
-    console.log('Rendering camera');
-    ref.current?.resumePreview();
-    return (
-      <View className="flex-1 relative">
-        <CameraView
-          className="flex-1 w-full"
-          ref={ref}
-          mode="picture"
-          facing="back"
-          mute={true}
-          responsiveOrientationWhenOrientationLocked
-        >
-          <View className="h-full w-full"></View>
-        </CameraView>
-        <View className="absolute bottom-0 left-0 right-0 items-center justify-center px-8 py-28">
-          <TouchableOpacity onPress={takePicture}>
-            <View className="w-24 h-24 rounded-full border-4 border-white items-center justify-center">
-              <View className="w-20 h-20 rounded-full bg-gray-100" />
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
   if (isGrading) {
     return (
       <View className="flex-1 items-center justify-center bg-gray-100">
@@ -380,7 +458,7 @@ export default function ScanScreen() {
   return (
     <View className="flex-1 bg-gray-100">
       {gradingResult
-        ? renderGradingResult()
+        ? renderGradingSubmitted()
         : takingPicture
           ? renderCamera()
           : renderPictureList()}

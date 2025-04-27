@@ -19,7 +19,7 @@ export default function TabLayout() {
           tabBarStyle: Platform.select({
             default: {
               position: 'absolute',
-              alignItems: 'center',
+              justifyContent: 'center',
               flexDirection: 'column',
               height: 70,
               backgroundColor: '#FFFFFF',
@@ -47,7 +47,7 @@ export default function TabLayout() {
           name="screens/quiz"
           options={{
             title: 'Quiz',
-            tabBarIcon: ({ color }) => <Ionicons size={24} name="stats-chart-outline" color={color} />,
+            tabBarIcon: ({ color }) => <Ionicons size={24} name="bar-chart-outline" color={color} />,
           }}
         />
         <Tabs.Screen

@@ -20,11 +20,10 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                                 name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
                                 size={24}
                                 color={answer.is_correct ? 'teal' : 'red'}
-                                className="mr-2"
                             />
                             <Text numberOfLines={1}
                                 ellipsizeMode="tail" className="text-md ml-4 font-medium text-gray-800">
-                                Q-{answer.ques_no}
+                                Question {answer.ques_no}
                             </Text>
                         </View>
                         {/* Answer summary */}
@@ -54,10 +53,9 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                                     name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
                                     size={24}
                                     color={answer.is_correct ? 'green' : 'red'}
-                                    className="mr-2"
                                 />
                                 <Text numberOfLines={1}
-                                    ellipsizeMode="tail" className="text-md font-medium text-gray-800">
+                                    ellipsizeMode="tail" className="text-md ml-4 font-medium text-gray-800">
                                     Question {answer.ques_no}
                                 </Text>
                             </View>
@@ -75,7 +73,7 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                                 <Text className="font-semibold">Answer: </Text>
                                 <Text>{answer.answer}</Text>
                             </Text>
-                            <Text className="text-md text-gray-600 my-1">
+                            <Text className="text-md text-gray-600 my-2">
                                 <Text className="font-semibold">Explanation: </Text>
                                 {answer.explanation}
                             </Text>
