@@ -13,7 +13,6 @@ export default function TabLayout() {
     <View className="flex-1 bg-gray-100">
       <Tabs
         screenOptions={{
-          header: () => <CustomHeader title="Home" />,
           tabBarButton: HapticTab,
           tabBarInactiveTintColor: "#B0B0B0",
           tabBarStyle: Platform.select({
@@ -43,6 +42,7 @@ export default function TabLayout() {
           },
         }}>
         <Tabs.Screen name="index" options={{ href: null }} />
+        <Tabs.Screen name="screens/worksheets/[id]" options={{ href: null }} />
         <Tabs.Screen
           name="screens/quiz"
           options={{
@@ -51,7 +51,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="screens/worksheets"
+          name="screens/worksheets/index"
           options={{
             title: 'Worksheets',
             tabBarIcon: ({ color }) => <Ionicons size={24} name="documents-outline" color={color} />,
