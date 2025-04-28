@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, ScrollView, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { View, ScrollView, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CircularProgress from 'react-native-circular-progress-indicator';
-import { BarChart } from "react-native-gifted-charts";
+import { BarChart, PieChart } from "react-native-gifted-charts";
 
 const mockWorksheets = [
     {
@@ -14,7 +14,7 @@ const mockWorksheets = [
         class: 'A',
         subject: 'Math',
         averageScore: 85,
-        studentsAttempted: 23,
+        studentsAttempted: 25,
     },
     {
         id: 2,
@@ -24,7 +24,7 @@ const mockWorksheets = [
         class: 'B',
         subject: 'Science',
         averageScore: 78,
-        studentsAttempted: 23,
+        studentsAttempted: 20,
     },
     {
         id: 3,
@@ -34,18 +34,50 @@ const mockWorksheets = [
         class: 'A',
         subject: 'English',
         averageScore: 90,
-        studentsAttempted: 23,
+        studentsAttempted: 30,
     },
 ];
 
+const learningObjectives = [
+    {
+        id: 1,
+        title: '2-digit carry-over addition',
+        description: 'Student understands the concept of carrying-over while doing addition sums and is able to apply it while solving problems.',
+        pieData: [
+            { value: 4, color: 'red' },
+            { value: 16, color: 'yellow' },
+            { value: 3, color: 'green' }
+        ]
+    },
+    {
+        id: 2,
+        title: '2-digit carry-over addition',
+        description: 'Student understands the concept of carrying-over while doing addition sums and is able to apply it while solving problems.',
+        pieData: [
+            { value: 8, color: 'red' },
+            { value: 8, color: 'yellow' },
+            { value: 7, color: 'green' }
+        ]
+    },
+    {
+        id: 3,
+        title: '2-digit carry-over addition',
+        description: 'Student understands the concept of carrying-over while doing addition sums and is able to apply it while solving problems.',
+        pieData: [
+            { value: 10, color: 'red' },
+            { value: 10, color: 'yellow' },
+            { value: 3, color: 'green' }
+        ]
+    }
+];
+
 const barData = [
-        {value: 2, label: '0-39', frontColor: '#ff0000', topLabelComponent: () => (<Text className='my-2'>2</Text>)},
-        {value: 5, label: '40-59', frontColor: '#ff8000', topLabelComponent: () => (<Text className='my-2'>5</Text>)},
-        {value: 7, label: '60-79', frontColor: '#f8f000', topLabelComponent: () => (<Text className='my-2'>7</Text>)},
-        {value: 3, label: '80-89', frontColor: '#0fff40', topLabelComponent: () => (<Text className='my-2'>3</Text>)},
-        {value: 6, label: '90-100', frontColor: 'green', topLabelComponent: () => (<Text className='my-2'>6</Text>)},
-    ];
-const screenWidth = Dimensions.get('window').width;
+    { value: 2, label: '0-39', frontColor: '#ff0000', topLabelComponent: () => (<Text className='my-2'>2</Text>) },
+    { value: 5, label: '40-59', frontColor: '#ff8000', topLabelComponent: () => (<Text className='my-2'>5</Text>) },
+    { value: 7, label: '60-79', frontColor: '#f8f000', topLabelComponent: () => (<Text className='my-2'>7</Text>) },
+    { value: 3, label: '80-89', frontColor: '#0fff40', topLabelComponent: () => (<Text className='my-2'>3</Text>) },
+    { value: 6, label: '90-100', frontColor: 'green', topLabelComponent: () => (<Text className='my-2'>6</Text>) },
+];
 
 export default function WorksheetDetails() {
     const router = useRouter();
@@ -110,8 +142,8 @@ export default function WorksheetDetails() {
                                             : averageScore < 80
                                                 ? '#f8f000'
                                                 : averageScore < 90
-                                                ? '#0fff40' 
-                                                :'green'
+                                                    ? '#0fff40'
+                                                    : 'green'
                                 }
                                 inActiveStrokeOpacity={0.2}
                                 progressValueColor={'#000'}
@@ -139,6 +171,49 @@ export default function WorksheetDetails() {
                                 xAxisThickness={0}
                                 hideRules={true}
                                 rotateLabel={0}
+                            />
+                        </View>
+                    </View>
+                    <View className="bg-white px-4 pt-4 rounded-lg shadow-md mb-4 border border-gray-300">
+                        <Text className="text-xl font-bold text-gray-800">Learning Objectives Summary</Text>
+                        <View className="mt-4">
+                            <View className="flex-row items-center justify-center mt-2 mb-4">
+                                <View className="flex-row items-center justify-center mx-2 ">
+                                    <View style={{ width: 20, height: 20, marginRight: 5, borderRadius: 4, backgroundColor: "red" }} />
+                                    <Text>Basic</Text>
+                                </View>
+                                <View className="flex-row items-center justify-center mx-2">
+                                    <View style={{ width: 20, height: 20, marginRight: 5, borderRadius: 4, backgroundColor: "yellow" }} />
+                                    <Text>Intermediate</Text>
+                                </View>
+                                <View className="flex-row items-center justify-center mx-2">
+                                    <View style={{ width: 20, height: 20, marginRight: 5, borderRadius: 4, backgroundColor: "green" }} />
+                                    <Text>Advanced</Text>
+                                </View>
+                            </View>
+                            <FlatList
+                                data={learningObjectives}
+                                keyExtractor={(item) => item.id.toString()}
+                                renderItem={({ item }) => (
+                                    <View className="flex-row items-center mx-2 my-4">
+                                        <View className="w-1/2 mr-2">
+                                            <Text className='text-xl font-semibold'>{item.title}</Text>
+                                            <Text className="text-lg">{item.description}</Text>
+                                        </View>
+                                        <View className='w-1/2 items-center justify-center'>
+                                            <Text className="text-center"># Students By Achievement Level</Text>
+                                            <PieChart
+                                                data={item.pieData}
+                                                radius={60}
+                                                focusOnPress
+                                                showText
+                                                textColor="black"
+                                                textSize={20}
+                                                showValuesAsLabels
+                                            />
+                                        </View>
+                                    </View>
+                                )}
                             />
                         </View>
                     </View>
