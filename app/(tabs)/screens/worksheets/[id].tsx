@@ -71,6 +71,45 @@ const learningObjectives = [
     }
 ];
 
+const responsePercentages = [
+    {
+        id: 1,
+        question: "56 + 89",
+        answer: "145",
+        pieData: [
+            { value: 30, color: 'red' },
+            { value: 70, color: 'green' }
+        ]
+    },
+    {
+        id: 2,
+        question: "56 + 89",
+        answer: "145",
+        pieData: [
+            { value: 30, color: 'red' },
+            { value: 70, color: 'green' }
+        ]
+    },
+    {
+        id: 3,
+        question: "56 + 89",
+        answer: "145",
+        pieData: [
+            { value: 30, color: 'red' },
+            { value: 70, color: 'green' }
+        ]
+    },
+    {
+        id: 4,
+        question: "56 + 89",
+        answer: "145",
+        pieData: [
+            { value: 30, color: 'red' },
+            { value: 70, color: 'green' }
+        ]
+    }
+];
+
 const barData = [
     { value: 2, label: '0-39', frontColor: '#ff0000', topLabelComponent: () => (<Text className='my-2'>2</Text>) },
     { value: 5, label: '40-59', frontColor: '#ff8000', topLabelComponent: () => (<Text className='my-2'>5</Text>) },
@@ -123,9 +162,10 @@ export default function WorksheetDetails() {
                 }}
             />
             <ScrollView className="flex-1 bg-gray-100 px-6 py-6">
-                <View>
+                <View className="mb-24">
                     <View className="bg-white px-4 pt-4 rounded-lg shadow-md mb-4 border border-gray-300">
                         <Text className="text-xl font-bold text-gray-800">Class Summary</Text>
+                        <Text className="mt-2 mb-4">Overall, the class was able to master the main concepts of the worksheets including advanced concepts that most students tend to find challenging at the beginning. There are 4 students who were not able to master more than 1 learning objective. This is an area of focus.</Text>
                         <View className="flex-row items-center mx-4 my-8">
                             <CircularProgress
                                 value={averageScore}
@@ -210,6 +250,35 @@ export default function WorksheetDetails() {
                                                 textColor="black"
                                                 textSize={20}
                                                 showValuesAsLabels
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            />
+                        </View>
+                    </View>
+                    <View className="bg-white px-4 pt-4 rounded-lg shadow-md mb-4 border border-gray-300">
+                        <Text className="text-xl font-bold text-gray-800">Responses Summary</Text>
+                        <View className="mt-4">
+                            <FlatList
+                                data={responsePercentages}
+                                keyExtractor={(item) => item.id.toString()}
+                                renderItem={({ item }) => (
+                                    <View className="flex-row items-center mx-2 my-4">
+                                        <View className="w-1/2 mr-2">
+                                            <Text className='text-xl font-semibold'>{item.id}. {item.question}</Text>
+                                            <Text className="text-lg">Answer: {item.answer}</Text>
+                                        </View>
+                                        <View className='w-1/2 items-center justify-center'>
+                                            <Text className="text-center mb-2">% Correct Responses</Text>
+                                            <PieChart
+                                                donut
+                                                radius={40}
+                                                innerRadius={25}
+                                                data={item.pieData}
+                                                centerLabelComponent={() => {
+                                                    return <Text style={{ fontSize: 22 }}>70%</Text>;
+                                                }}
                                             />
                                         </View>
                                     </View>

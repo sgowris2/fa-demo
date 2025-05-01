@@ -5,44 +5,50 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
 import CircularProgress from 'react-native-circular-progress-indicator';
 
-const mockWorksheets = [
+const mockChaptersList = [
   {
     id: 1,
-    title: 'Math Worksheet 1',
+    title: 'Chapter 1',
+    description: 'A Fish Tail',
     date: '2025-04-20',
     grade: '5',
     class: 'A',
-    subject: 'Math',
+    subject: 'EVS',
     averageScore: 85,
     studentsAttempted: 25,
+    studentsInFocus: 2
   },
   {
     id: 2,
-    title: 'Science Worksheet 1',
-    date: '2025-04-18',
+    title: 'Chapter 2',
+    description: 'A Fish Tail',
+    date: '2025-04-20',
     grade: '5',
     class: 'B',
-    subject: 'Science',
-    averageScore: 78,
-    studentsAttempted: 20,
+    subject: 'EVS',
+    averageScore: 85,
+    studentsAttempted: 25,
+    studentsInFocus: 2
   },
   {
     id: 3,
-    title: 'English Worksheet 1',
-    date: '2025-04-15',
-    grade: '6',
-    class: 'A',
-    subject: 'English',
-    averageScore: 90,
-    studentsAttempted: 30,
+    title: 'Chapter 3',
+    description: 'A Fish Tail',
+    date: '2025-04-20',
+    grade: '5',
+    class: 'C',
+    subject: 'EVS',
+    averageScore: 85,
+    studentsAttempted: 25,
+    studentsInFocus: 2
   },
 ];
 
-export default function WorksheetsScreen() {
-  const [worksheets, setWorksheets] = useState(mockWorksheets);
+export default function DashboardsScreen() {
+  const [chapters, setChapters] = useState(mockChaptersList);
   const router = useRouter();
   const [filters, setFilters] = useState({ grade: '', class: '', subject: '' });
-  const [sortByDate, setSortByDate] = useState(true);
+  const [sortByDate, setSortByDate] = useState(false);
 
   // Dropdown states
   const [openGrade, setOpenGrade] = useState(false);
@@ -62,6 +68,7 @@ export default function WorksheetsScreen() {
     { label: 'All', value: '' },
     { label: 'A', value: 'A' },
     { label: 'B', value: 'B' },
+    { label: 'C', value: 'C' },
   ];
   const subjectItems = [
     { label: 'All', value: '' },
@@ -76,19 +83,19 @@ export default function WorksheetsScreen() {
   }, [gradeValue, classValue, subjectValue]);
 
   // Filter worksheets
-  const filteredWorksheets = worksheets.filter((worksheet) => {
+  const filteredChapters = chapters.filter((chapter) => {
     return (
-      (!filters.grade || worksheet.grade === filters.grade) &&
-      (!filters.class || worksheet.class === filters.class) &&
-      (!filters.subject || worksheet.subject.toLowerCase().includes(filters.subject.toLowerCase()))
+      (!filters.grade || chapter.grade === filters.grade) &&
+      (!filters.class || chapter.class === filters.class) &&
+      (!filters.subject || chapter.subject.toLowerCase().includes(filters.subject.toLowerCase()))
     );
   });
 
-  const sortedWorksheets = sortByDate
-    ? [...filteredWorksheets].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    : [...filteredWorksheets].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const sortedChapters = sortByDate
+    ? [...filteredChapters].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    : [...filteredChapters].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const sortedWorksheetsMemo = useMemo(() => sortedWorksheets, [sortedWorksheets]);
+  const sortedChaptersMemo = useMemo(() => sortedChapters, [sortedChapters]);
 
   return (
     <View className="flex-1 bg-gray-100 px-4 py-6">
@@ -143,40 +150,34 @@ export default function WorksheetsScreen() {
         </View>
       </View>
 
-      {/* Sort Button */}
-      <View className="flex-row items-center justify-center mb-4">
-        <TouchableOpacity
-          onPress={() => setSortByDate((prev) => !prev)}
-          className="flex-row items-center justify-center w-1/2 bg-blue-600 px-4 py-2 rounded-lg shadow-md mb-4"
-        >
-          <Ionicons name="calendar-outline" size={20} color="white" />
-          <Text className="text-white text-lg font-semibold ml-2">
-            {sortByDate ? 'Sort by Oldest' : 'Sort by Newest'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Worksheets List */}
+      {/* Chapters List */}
       <FlatList
-        data={sortedWorksheetsMemo}
+        data={sortedChaptersMemo}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => router.push({ pathname: '/screens/worksheets/[id]', params: { id: item.id } })} // Navigate to the dynamic route
-            className="bg-white px-4 py-6 rounded-lg shadow-md mb-4 border border-gray-300"
+            onPress={() => router.push({ pathname: '/screens/dashboards/[id]', params: { id: item.id } })} // Navigate to the dynamic route
+            className="bg-white px-4 py-6 rounded-lg shadow-sm mb-4 border border-gray-200"
           >
             <View className="flex-row justify-between items-center">
               <View className="flex-1">
-                <Text className="text-xl font-bold text-gray-800 mb-2">{item.title}</Text>
-                <Text className="text-sm text-gray-600 mb-2">{item.date}</Text>
-                <Text className="text-sm text-gray-600">
-                  Grade {item.grade}, Class {item.class}
-                </Text>
-                <View className="flex-row items-center mt-2">
-                  <Ionicons name="people-outline" size={16} color="gray" />
-                  <Text className="text-sm text-gray-600 ml-2">
-                    Students: {item.studentsAttempted}
+                <View className="">
+                  <Text className="text-md font-semibold text-gray-800">{item.title}</Text>
+                  <Text className="text-lg font-bold text-gray-800">{item.description}</Text>
+                  <Text className="text-lg text-gray-600">
+                    Class {item.grade}{item.class} - {item.date}
                   </Text>
+                </View>
+              </View>
+
+              <View className="items-center justify-center mx-4">
+                <View className="flex-row">
+                  <Ionicons name="alert-circle-outline" size={24} color="red" />
+                  <Text className="text-2xl font-bold px-2">{item.studentsInFocus}</Text>
+                </View>
+                <View className="text-center">
+                  <Text className="text-sm text-center text-gray-600">Students</Text>
+                  <Text className="text-sm text-center text-gray-600">In Focus</Text>
                 </View>
               </View>
 
@@ -191,15 +192,15 @@ export default function WorksheetsScreen() {
                   activeStrokeWidth={15}
                   activeStrokeColor={
                     item.averageScore < 40
-                        ? '#ff0000'
-                        : item.averageScore < 60
-                            ? '#ff8000'
-                            : item.averageScore < 80
-                                ? '#f8f000'
-                                : item.averageScore < 90
-                                ? '#0fff40' 
-                                :'green'
-                }
+                      ? '#ff0000'
+                      : item.averageScore < 60
+                        ? '#ff8000'
+                        : item.averageScore < 80
+                          ? '#f8f000'
+                          : item.averageScore < 90
+                            ? '#0fff40'
+                            : 'green'
+                  }
                   inActiveStrokeOpacity={0.2}
                   progressValueColor={'#000'}
                 />
@@ -208,7 +209,7 @@ export default function WorksheetsScreen() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text className="text-center text-gray-600 mt-4">No worksheets found.</Text>
+          <Text className="text-center text-gray-600 mt-4">No chapters found.</Text>
         }
       />
     </View>

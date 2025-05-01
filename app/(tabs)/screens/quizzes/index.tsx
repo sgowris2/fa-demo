@@ -5,41 +5,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
 import CircularProgress from 'react-native-circular-progress-indicator';
 
-const mockWorksheets = [
-  {
-    id: 1,
-    title: 'Math Worksheet 1',
-    date: '2025-04-20',
-    grade: '5',
-    class: 'A',
-    subject: 'Math',
-    averageScore: 85,
-    studentsAttempted: 25,
-  },
-  {
-    id: 2,
-    title: 'Science Worksheet 1',
-    date: '2025-04-18',
-    grade: '5',
-    class: 'B',
-    subject: 'Science',
-    averageScore: 78,
-    studentsAttempted: 20,
-  },
-  {
-    id: 3,
-    title: 'English Worksheet 1',
-    date: '2025-04-15',
-    grade: '6',
-    class: 'A',
-    subject: 'English',
-    averageScore: 90,
-    studentsAttempted: 30,
-  },
-];
-
-export default function WorksheetsScreen() {
-  const [worksheets, setWorksheets] = useState(mockWorksheets);
+export default function QuizzesScreen() {
   const router = useRouter();
   const [filters, setFilters] = useState({ grade: '', class: '', subject: '' });
   const [sortByDate, setSortByDate] = useState(true);
@@ -57,38 +23,109 @@ export default function WorksheetsScreen() {
     { label: 'All', value: '' },
     { label: '5th', value: '5' },
     { label: '6th', value: '6' },
+    { label: '7th', value: '7' },
+    { label: '8th', value: '8' },
   ];
   const classItems = [
     { label: 'All', value: '' },
     { label: 'A', value: 'A' },
     { label: 'B', value: 'B' },
+    { label: 'C', value: 'B' },
+    { label: 'D', value: 'B' },
   ];
   const subjectItems = [
     { label: 'All', value: '' },
-    { label: 'Math', value: 'Math' },
+    { label: 'Maths', value: 'Math' },
     { label: 'Science', value: 'Science' },
     { label: 'English', value: 'English' },
-    { label: 'EVS', value: 'EVS' },
+    { label: 'History', value: 'History' },
+    { label: 'Geography', value: 'Geography' },
+    { label: 'Hindi', value: 'Hindi' },
+    { label: 'Kannada', value: 'Kannada' },
   ];
+
+  const mockQuizzes = [
+    {
+      id: 1,
+      title: 'Fractions Quiz 1',
+      date: '2025-04-20',
+      grade: '4',
+      class: 'A',
+      subject: 'Maths',
+      averageScore: 81,
+      studentsAttempted: 35,
+    },
+    {
+      id: 2,
+      title: 'Fractions Quiz 1',
+      date: '2025-04-20',
+      grade: '4',
+      class: 'B',
+      subject: 'Maths',
+      averageScore: 67,
+      studentsAttempted: 35,
+    },
+    {
+      id: 3,
+      title: 'Fractions Quiz 1',
+      date: '2025-04-20',
+      grade: '4',
+      class: 'C',
+      subject: 'Maths',
+      averageScore: 48,
+      studentsAttempted: 35,
+    },
+    {
+      id: 4,
+      title: 'Time & Measurement Quiz 1',
+      date: '2025-04-18',
+      grade: '7',
+      class: 'A',
+      subject: 'Science',
+      averageScore: 82,
+      studentsAttempted: 28,
+    },
+    {
+      id: 5,
+      title: 'Time & Measurement Quiz 1',
+      date: '2025-04-18',
+      grade: '7',
+      class: 'B',
+      subject: 'Science',
+      averageScore: 69,
+      studentsAttempted: 26,
+    },
+    {
+      id: 6,
+      title: 'Work & Energy Quiz 1',
+      date: '2025-04-15',
+      grade: '7',
+      class: 'A',
+      subject: 'Science',
+      averageScore: 91,
+      studentsAttempted: 29,
+    },
+  ];
+
+  const [quizzes, setQuizzes] = useState(mockQuizzes);
 
   useEffect(() => {
     setFilters({ grade: gradeValue || '', class: classValue || '', subject: subjectValue || '' });
   }, [gradeValue, classValue, subjectValue]);
 
-  // Filter worksheets
-  const filteredWorksheets = worksheets.filter((worksheet) => {
+  const filteredQuizzes = quizzes.filter((quiz) => {
     return (
-      (!filters.grade || worksheet.grade === filters.grade) &&
-      (!filters.class || worksheet.class === filters.class) &&
-      (!filters.subject || worksheet.subject.toLowerCase().includes(filters.subject.toLowerCase()))
+      (!filters.grade || quiz.grade === filters.grade) &&
+      (!filters.class || quiz.class === filters.class) &&
+      (!filters.subject || quiz.subject.toLowerCase().includes(filters.subject.toLowerCase()))
     );
   });
 
-  const sortedWorksheets = sortByDate
-    ? [...filteredWorksheets].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    : [...filteredWorksheets].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const sortedQuizzes = sortByDate
+    ? [...filteredQuizzes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    : [...filteredQuizzes].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const sortedWorksheetsMemo = useMemo(() => sortedWorksheets, [sortedWorksheets]);
+  const sortedQuizzesMemo = useMemo(() => sortedQuizzes, [sortedQuizzes]);
 
   return (
     <View className="flex-1 bg-gray-100 px-4 py-6">
@@ -156,25 +193,22 @@ export default function WorksheetsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Worksheets List */}
+      {/* Quizzes List */}
       <FlatList
-        data={sortedWorksheetsMemo}
+        data={sortedQuizzesMemo}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => router.push({ pathname: '/screens/worksheets/[id]', params: { id: item.id } })} // Navigate to the dynamic route
-            className="bg-white px-4 py-6 rounded-lg shadow-md mb-4 border border-gray-300"
+            onPress={() => router.push({ pathname: '/screens/quizzes/[id]', params: { id: item.id } })} // Navigate to the dynamic route
+            className="bg-white px-4 py-6 rounded-lg shadow-sm mb-4 border border-gray-300"
           >
             <View className="flex-row justify-between items-center">
               <View className="flex-1">
-                <Text className="text-xl font-bold text-gray-800 mb-2">{item.title}</Text>
-                <Text className="text-sm text-gray-600 mb-2">{item.date}</Text>
-                <Text className="text-sm text-gray-600">
-                  Grade {item.grade}, Class {item.class}
-                </Text>
+                <Text className="text-xl font-bold text-gray-800">{item.title} ({item.grade}{item.class})</Text>
+                <Text className="text-lg text-gray-600">{item.date}</Text>
                 <View className="flex-row items-center mt-2">
-                  <Ionicons name="people-outline" size={16} color="gray" />
-                  <Text className="text-sm text-gray-600 ml-2">
+                  <Ionicons name="people-outline" size={22} color="gray" />
+                  <Text className="text-lg text-gray-600 ml-2">
                     Students: {item.studentsAttempted}
                   </Text>
                 </View>
@@ -184,7 +218,7 @@ export default function WorksheetsScreen() {
               <View className="items-center">
                 <CircularProgress
                   value={item.averageScore}
-                  radius={30}
+                  radius={35}
                   maxValue={100}
                   inActiveStrokeColor={'#d3d3d3'}
                   inActiveStrokeWidth={15}
@@ -202,6 +236,9 @@ export default function WorksheetsScreen() {
                 }
                   inActiveStrokeOpacity={0.2}
                   progressValueColor={'#000'}
+                  title='Avg'
+                  titleColor='black'
+                  titleFontSize={14}
                 />
               </View>
             </View>
