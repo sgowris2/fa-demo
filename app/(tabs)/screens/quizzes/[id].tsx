@@ -186,13 +186,11 @@ const convertDistributionToBarData = (distribution: { [s: string]: unknown; } | 
 };
 
 export default function QuizDetails() {
-
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
     // Find Quiz Results by ID
-    // const quiz = mockQuizzes.find((item) => item.id === parseInt(id as string, 10));
-    const quiz = mockQuizResults[0]
+    const quiz = mockQuizResults[0];
 
     if (!quiz) {
         return (
@@ -230,135 +228,119 @@ export default function QuizDetails() {
                 }}
             />
             <ScrollView className="flex-1 bg-gray-100 px-6 py-6">
-                <View className="mb-24">
-                    <TouchableOpacity
-                        className="flex-row items-center justify-center bg-blue-600 mx-4 mb-8 px-6 py-4 rounded-lg shadow-md active:opacity-80"
-                    >
-                        <Ionicons name="documents-outline" size={24} color="white" />
-                        <Text className="text-white text-xl font-semibold ml-3">
-                            Generate Smart Worksheets
-                        </Text>
-                    </TouchableOpacity>
-                    <View className="bg-white px-4 pt-4 rounded-lg shadow-md pb-4 mb-4 border border-gray-300">
-                        <View> {/* Performance */}
-                            <Text className="text-xl font-bold text-gray-800">Performance</Text>
-                            <View className="flex-row items-center justify-between mx-8 py-2">
-                                <CircularProgress
-                                    value={averageScore}
-                                    radius={50}
-                                    maxValue={100}
-                                    inActiveStrokeColor={'#d3d3d3'}
-                                    inActiveStrokeWidth={20}
-                                    activeStrokeWidth={20}
-                                    activeStrokeColor={
-                                        averageScore < 40
-                                            ? '#ff0000'
-                                            : averageScore < 60
-                                                ? '#ff8000'
-                                                : averageScore < 80
-                                                    ? '#f8f000'
-                                                    : averageScore < 90
-                                                        ? '#0fff40'
-                                                        : 'green'
-                                    }
-                                    inActiveStrokeOpacity={0.2}
-                                    progressValueColor={'#000'}
-                                    valueSuffix='%'
-                                    title='Avg Score'
-                                    titleColor='black'
-                                />
-                                <View className=''>
-                                    <Text className="text-lg text-center font-semibold text-gray-800 mt-2">Score Distribution</Text>
-                                    <BarChart
-                                        barWidth={18}
-                                        initialSpacing={0}
-                                        spacing={6}
-                                        labelsDistanceFromXaxis={0}
-                                        noOfSections={5}
-                                        barBorderRadius={4}
-                                        frontColor="lightgray"
-                                        data={barData}
-                                        hideYAxisText={true}
-                                        yAxisThickness={0}
-                                        xAxisThickness={0}
-                                        // maxValue={5}
-                                        height={100}
-                                        hideRules={false}
-                                        rotateLabel={false}
-                                    />
-                                    <Text className="text-md text-center text-gray-800">Score</Text>
-                                </View>
-                            </View>
-                        </View>
-                        <View className='mb-4'> {/* Responses */}
-                            <Text className="text-xl font-bold mt-4 mb-4 text-gray-800">Responses</Text>
-                            <FlatList
-                                data={quiz.questions}
-                                keyExtractor={(item) => item.id.toString()}
-                                renderItem={({ item }) => (
-                                    <View className='flex-row items-center justify-between mx-2 my-2 '>
-                                        <View className='w-2/3'>
-                                            <Text className='mb-2'>{item.id}. {item.q}</Text>
-                                            <FlatList
-                                                data={item.options}
-                                                renderItem={({ item }) => (
-                                                    <Text className=''>{item}</Text>
-                                                )}
-                                            />
-                                        </View>
-                                        <View>
-                                            <BarChart
-                                                barWidth={15}
-                                                initialSpacing={0}
-                                                spacing={6}
-                                                labelsDistanceFromXaxis={0}
-                                                noOfSections={5}
-                                                barBorderRadius={4}
-                                                frontColor="lightgray"
-                                                data={convertDistributionToBarData(item.response_summary.distribution, item.a)}
-                                                hideYAxisText={true}
-                                                yAxisThickness={0}
-                                                xAxisThickness={0}
-                                                // maxValue={5}
-                                                height={80}
-                                                hideRules={true}
-                                                rotateLabel={false}
-                                            />
-                                        </View>
-                                    </View>
-                                )}
+                {/* Smart Worksheet Button */}
+                <TouchableOpacity
+                    className="flex-row items-center justify-center bg-blue-600 mx-4 mb-8 px-6 py-4 rounded-lg shadow-md active:opacity-80"
+                >
+                    <Ionicons name="documents-outline" size={24} color="white" />
+                    <Text className="text-white text-xl font-semibold ml-3">
+                        Generate Smart Worksheets
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Performance Section */}
+                <View className="bg-white px-4 pt-4 rounded-lg shadow-md pb-4 mb-4 border border-gray-300">
+                    <Text className="text-xl font-bold text-gray-800">Performance</Text>
+                    <View className="flex-row items-center justify-between mx-8 py-2">
+                        <CircularProgress
+                            value={averageScore}
+                            radius={50}
+                            maxValue={100}
+                            inActiveStrokeColor={'#d3d3d3'}
+                            inActiveStrokeWidth={20}
+                            activeStrokeWidth={20}
+                            activeStrokeColor={
+                                averageScore < 40
+                                    ? '#ff0000'
+                                    : averageScore < 60
+                                        ? '#ff8000'
+                                        : averageScore < 80
+                                            ? '#f8f000'
+                                            : averageScore < 90
+                                                ? '#0fff40'
+                                                : 'green'
+                            }
+                            inActiveStrokeOpacity={0.2}
+                            progressValueColor={'#000'}
+                            valueSuffix='%'
+                            title='Avg Score'
+                            titleColor='black'
+                        />
+                        <View className=''>
+                            <Text className="text-lg text-center font-semibold text-gray-800 mt-2">Score Distribution</Text>
+                            <BarChart
+                                barWidth={18}
+                                initialSpacing={0}
+                                spacing={6}
+                                labelsDistanceFromXaxis={0}
+                                noOfSections={5}
+                                barBorderRadius={4}
+                                frontColor="lightgray"
+                                data={barData}
+                                hideYAxisText={true}
+                                yAxisThickness={0}
+                                xAxisThickness={0}
+                                height={100}
+                                hideRules={false}
+                                rotateLabel={false}
                             />
-                        </View>
-                        <View className="mb-4"> {/* Learning Objectives */}
-                            <Text className="text-xl font-bold mt-4 mb-4 text-gray-800">Learning Objectives</Text>
-                            <FlatList data={learningObjectives}
-                                keyExtractor={(item) => item.key.toString()}
-                                renderItem={({ item }) => (
-                                    <View className='my-4'>
-                                        <View className='flex-row items-center justify-between'>
-                                            <View className="flex-row items-center mb-2">
-                                                <Text className="text-lg font-bold mx-2">{item.key}</Text>
-                                                <Text
-                                                    className="text-md text-center px-2 py-1 rounded-lg mx-2"
-                                                    style={{
-                                                        backgroundColor:
-                                                            item.score === null ? '#dddddd' :
-                                                                item.score < 60 ? '#ffcccc' :
-                                                                    item.score < 80 ? '#ccffcc' : '#b3ffb3'
-                                                    }}>
-                                                    {item.insight}
-                                                </Text>
-                                            </View>
-                                            <Text className="text-xl font-bold w-1/5 mx-2">{item.score === null ? '' : `${item.score} %`}</Text>
-                                        </View>
-                                        <Text className='text-lg mx-2'>{item.description}</Text>
-                                    </View>
-                                )
-                                }
-                            />
+                            <Text className="text-md text-center text-gray-800">Score</Text>
                         </View>
                     </View>
                 </View>
+
+                {/* Responses Section */}
+                <Text className="text-xl font-bold mt-4 mb-4 text-gray-800">Responses</Text>
+                {questions.map((question) => (
+                    <View key={question.id} className='flex-row items-center justify-between mx-2 my-2'>
+                        <View className='w-2/3'>
+                            <Text className='mb-2'>{question.id}. {question.q}</Text>
+                            {question.options.map((option, idx) => (
+                                <Text key={idx} className=''>{option}</Text>
+                            ))}
+                        </View>
+                        <BarChart
+                            barWidth={15}
+                            initialSpacing={0}
+                            spacing={6}
+                            labelsDistanceFromXaxis={0}
+                            noOfSections={5}
+                            barBorderRadius={4}
+                            frontColor="lightgray"
+                            data={convertDistributionToBarData(question.response_summary.distribution, question.a)}
+                            hideYAxisText={true}
+                            yAxisThickness={0}
+                            xAxisThickness={0}
+                            height={80}
+                            hideRules={true}
+                            rotateLabel={false}
+                        />
+                    </View>
+                ))}
+
+                {/* Learning Objectives Section */}
+                <Text className="text-xl font-bold mt-4 mb-4 text-gray-800">Learning Objectives</Text>
+                {learningObjectives.map((item) => (
+                    <View key={item.key} className='my-4'>
+                        <View className='flex-row items-center justify-between'>
+                            <View className="flex-row items-center mb-2">
+                                <Text className="text-lg font-bold mx-2">{item.key}</Text>
+                                <Text
+                                    className="text-md text-center px-2 py-1 rounded-lg mx-2"
+                                    style={{
+                                        backgroundColor:
+                                            item.score === null ? '#dddddd' :
+                                                item.score < 60 ? '#ffcccc' :
+                                                    item.score < 80 ? '#ccffcc' : '#b3ffb3'
+                                    }}>
+                                    {item.insight}
+                                </Text>
+                            </View>
+                            <Text className="text-xl font-bold w-1/5 mx-2">{item.score === null ? '' : `${item.score} %`}</Text>
+                        </View>
+                        <Text className='text-lg mx-2'>{item.description}</Text>
+                    </View>
+                ))}
             </ScrollView>
         </>
     );

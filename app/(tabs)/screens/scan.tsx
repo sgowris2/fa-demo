@@ -43,7 +43,6 @@ export default function ScanScreen() {
   // Reset state when navigating to this tab
   useFocusEffect(
     useCallback(() => {
-      // Reset grading result and images
       setGradingResult(null);
       setImages([]);
     }, [])
@@ -179,73 +178,76 @@ export default function ScanScreen() {
     }
 
     return (
-      <View className="flex-1 items-center justify-center bg-gray-100 px-4 py-6">
-        {/* Header */}
-        <Text className="text-2xl font-bold text-gray-800 mb-6">
-          Captured Images
-        </Text>
-
-        {/* Image Grid */}
-        <View className="w-full items-center mb-8">
-          <FlatList
-            data={images}
-            keyExtractor={(item, index) => index.toString()}
-            numColumns={3}
-            className="flex-1 border border-gray-300 rounded-lg p-4 bg-white shadow-md"
-            contentContainerStyle={{ paddingHorizontal: 8 }}
-            style={{
-              height: 275,
-              maxHeight: 275,
-              maxWidth: 400,
-            }}
-            renderItem={({ item, index }) => (
-              <View className="relative w-24 h-24 mx-2 my-2">
-                {/* Image */}
-                <Image
-                  source={{ uri: item }}
-                  resizeMode="contain"
-                  className="w-full h-full rounded-lg shadow-md"
-                />
-                {/* Delete Button */}
-                <TouchableOpacity
-                  onPress={() => {
-                    const newImages = [...images];
-                    newImages.splice(index, 1);
-                    setImages(newImages);
-                  }}
-                  className="absolute top-1 right-1 bg-red-600 bg-opacity-80 rounded-full p-1"
-                >
-                  <Ionicons name="close" size={16} color="white" />
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+      <View className='h-full items-center'>
+        <View className="items-center justify-center bg-gray-100 px-4">
+          {/* Image Grid */}
+          <Text className="text-2xl font-bold text-gray-800 mt-8 mb-6">
+            Captured Images
+          </Text>
+          <View className="w-full items-center">
+            <FlatList
+              data={images}
+              keyExtractor={(item, index) => index.toString()}
+              numColumns={3}
+              className="border border-gray-300 rounded-lg p-4 bg-white shadow-md"
+              contentContainerStyle={{
+                paddingHorizontal: 8,
+              }}
+              style={{
+                minHeight: 125,
+                maxHeight: 250,
+                maxWidth: 400,
+              }}
+              renderItem={({ item, index }) => (
+                <View className="relative w-24 h-24 mx-2 my-2">
+                  {/* Image */}
+                  <Image
+                    source={{ uri: item }}
+                    resizeMode="contain"
+                    className="w-full h-full rounded-lg shadow-md"
+                  />
+                  {/* Delete Button */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      const newImages = [...images];
+                      newImages.splice(index, 1);
+                      setImages(newImages);
+                    }}
+                    className="absolute top-1 right-1 bg-red-600 bg-opacity-80 rounded-full p-1"
+                  >
+                    <Ionicons name="close" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          </View>
         </View>
+        <View className="absolute bottom-32">
+          {/* Scan Next Page Button */}
+          <View className="mt-8">
+            <TouchableOpacity
+              onPress={() => setTakingPicture(true)}
+              className="flex-row items-center justify-center bg-blue-500 px-6 py-4 rounded-lg shadow-md active:opacity-80"
+            >
+              <Ionicons name="camera-outline" size={20} color="white" />
+              <Text className="text-white text-lg font-bold ml-3">
+                Scan Next Page
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Scan Next Page Button */}
-        <View className="mt-8">
-          <TouchableOpacity
-            onPress={() => setTakingPicture(true)}
-            className="flex-row items-center justify-center bg-blue-500 px-6 py-3 rounded-lg shadow-md active:opacity-80"
-          >
-            <Ionicons name="camera-outline" size={20} color="white" />
-            <Text className="text-white text-lg font-semibold ml-3">
-              Scan Next Page
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Start AI Grading Button */}
-        <View className="mt-8">
-          <TouchableOpacity
-            onPress={autoGrade}
-            className="flex-row items-center justify-center bg-green-600 px-6 py-4 rounded-lg shadow-md active:opacity-80"
-          >
-            <Ionicons name="sparkles-outline" size={20} color="white" />
-            <Text className="text-white text-lg font-semibold ml-3">
-              Start AI Grading!
-            </Text>
-          </TouchableOpacity>
+          {/* Start AI Grading Button */}
+          <View className="mt-8">
+            <TouchableOpacity
+              onPress={autoGrade}
+              className="flex-row items-center justify-center bg-green-600 px-6 py-4 rounded-lg shadow-md active:opacity-80"
+            >
+              <Ionicons name="sparkles-outline" size={20} color="white" />
+              <Text className="text-white text-lg font-bold ml-3">
+                Start AI Grading!
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -313,7 +315,9 @@ export default function ScanScreen() {
     const result = gradingResult[firstKey][0]; // Access the first result in the array
 
     // Extract relevant data
-    const { answers, score, percent, student_name, grade, section, subject, date, out_of, focus_areas, insights } = result;
+    const { answers, score, percent, student_name, grade, section, subject, date, out_of, insights } = result;
+    const { focus_areas, highlights } = insights;
+    
     // Format the date
     const formattedDate = new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -325,8 +329,7 @@ export default function ScanScreen() {
       <ScrollView className="flex-1 px-6 bg-gray-100">
         <View className="flex-row items-center justify-between">
           <View>
-            <View className="">
-
+            <View className="mt-4">
               <Text className="text-2xl font-semibold text-gray-900">
                 Worksheet #{firstKey}
               </Text>
@@ -386,42 +389,27 @@ export default function ScanScreen() {
           <Text className="text-xl font-semibold text-gray-900 mb-4">
             Responses
           </Text>
-
           {answers.map((answer: any, index: number) => (
             <AnswerCard key={index} answer={answer} />
           ))}
         </View>
 
         <View className="mt-2 mb-1">
-          {/* Focus Areas */}
-          <Text className="text-xl font-semibold text-gray-900 mt-4 mb-4">
-            Focus Areas
-          </Text>
-          {focus_areas.length > 0 ? (
-            focus_areas.map((item: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined, index: Key | null | undefined) => (
-              <View
-                key={index}
-                className="bg-white px-4 py-3 rounded-lg mb-2"
-              >
-                <Text className="text-gray-800">{item}</Text>
-              </View>
-            ))
-          ) : (
-            <Text className="text-gray-800">
-              No focus areas identified.
-            </Text>
-          )}
-
-        </View>
-
-
-        <View className="mt-2 mb-1">
           <Text className="text-xl font-semibold text-gray-900 mt-4 mb-4">
             Insights
           </Text>
-          <Text className="text-gray-800 mb-2">
-            {insights}
-          </Text>
+          {focus_areas.map((h: string, index: number) => (
+            <View key={index} className="flex-row items-center py-2 mb-2">
+              <Ionicons name='help' size={24} color='red'/>
+              <Text className='ml-4 mr-8 text-lg font-medium text-red-600'>{h}</Text>
+              </View>
+          ))}
+          {highlights.map((h: string, index: number) => (
+            <View key={index} className="flex-row items-center py-2 mb-2">
+              <Ionicons name='checkmark' size={24} color='black'/>
+              <Text className='ml-4 mr-8 text-lg'>{h}</Text>
+              </View>
+          ))}
         </View>
 
         {/* Scan New Worksheet Button */}
@@ -458,7 +446,7 @@ export default function ScanScreen() {
   return (
     <View className="flex-1 bg-gray-100">
       {gradingResult
-        ? renderGradingSubmitted()
+        ? renderGradingResult()
         : takingPicture
           ? renderCamera()
           : renderPictureList()}

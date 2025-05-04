@@ -2,8 +2,28 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const AnswerCard = ({ answer }: { answer: any }) => {
+interface Answer {
+    is_correct: boolean;
+    correct_answer: string;
+    ques_no: number;
+    formatted_question: string;
+    answer: string;
+    mistake_details: {
+        type: 'conceptual' | 'skill' | 'calculation' | 'memory' | 'careless' | null;
+        misconception: string | null;
+        remediation_options: string[];
+    };
+}
+
+const AnswerCard = ({ answer }: { answer: Answer }) => {
     const [expanded, setExpanded] = useState(false);
+    const mistakeTypeColors = {
+        conceptual: '#F87171',  // red-400
+        skill: '#FB923C',   // orange-400
+        calculation: '#FBBF24', // yellow-400
+        memory: '#34D399',    // green-400
+        careless: '#A78BFA',     // purple-400
+    };
 
     return (
         <TouchableOpacity
@@ -15,25 +35,25 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                 {/* Top row */}
                 {!expanded && (
                     <View className="flex-row items-center justify-between">
-                        <View className="w-1/2 flex-row items-center">
+                        <View className="w-1/4 flex-row items-center">
                             <Ionicons
                                 name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
                                 size={24}
-                                color={answer.is_correct ? 'teal' : 'red'}
+                                color={answer.is_correct ? 'green' : 'red'}
                             />
                             <Text numberOfLines={1}
-                                ellipsizeMode="tail" className="text-md ml-4 font-medium text-gray-800">
-                                Question {answer.ques_no}
+                                ellipsizeMode="tail" className="text-xl ml-4 font-bold text-gray-800">
+                                Q{answer.ques_no}
                             </Text>
                         </View>
                         {/* Answer summary */}
                         <Text
                             numberOfLines={1}
                             ellipsizeMode="tail"
-                            className="text-md text-gray-400 mx-4"
+                            className="w-1/2 text-lg text-gray-400 mx-4"
                         >
-                            Ans: 
-                            <Text className="text-md text-gray-800 font-semibold"> {answer.answer} </Text>
+
+                            <Text className="text-lg text-gray-800"> {answer.answer} </Text>
                         </Text>
                         <Ionicons
                             name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -47,7 +67,7 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                 {/* Expanded content */}
                 {expanded && (
                     <View className="">
-                        <View className="flex-row items-center justify-between">
+                        <View className="flex-row w-full items-center justify-between">
                             <View className="flex-row items-center">
                                 <Ionicons
                                     name={answer.is_correct ? 'checkmark-circle' : 'close-circle'}
@@ -55,11 +75,11 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                                     color={answer.is_correct ? 'green' : 'red'}
                                 />
                                 <Text numberOfLines={1}
-                                    ellipsizeMode="tail" className="text-md ml-4 font-medium text-gray-800">
-                                    Question {answer.ques_no}
+                                    ellipsizeMode="tail" className="text-xl ml-4 font-bold text-gray-800">
+                                    Q{answer.ques_no}
                                 </Text>
                             </View>
-                            <View className="w-1/2 flex-row items-center">
+                            <View className="flex-row items-center justify-right">
                                 <Ionicons
                                     name={expanded ? 'chevron-up' : 'chevron-down'}
                                     size={20}
@@ -69,14 +89,51 @@ const AnswerCard = ({ answer }: { answer: any }) => {
                             </View>
                         </View>
                         <View className="mt-4">
-                            <Text className="text-md text-gray-600 my-1">
-                                <Text className="font-semibold">Answer: </Text>
+                            <Text className="text-lg text-gray-900 my-2">
+                                <Text>{answer.formatted_question}</Text>
+                            </Text>
+                            <Text className="text-lg text-gray-900 my-2">
+                                <Text className="font-semibold">Student Answer: </Text>
                                 <Text>{answer.answer}</Text>
                             </Text>
-                            <Text className="text-md text-gray-600 my-2">
-                                <Text className="font-semibold">Explanation: </Text>
-                                {answer.explanation}
-                            </Text>
+                            <View>
+                                {!answer.is_correct && (
+                                    <View>
+                                        <Text className="text-lg text-gray-900 my-2">
+                                            <Text className="font-semibold">Correct Answer: </Text>
+                                            <Text>{answer.correct_answer}</Text>
+                                        </Text>
+
+                                        <View className="">
+                                            <View className=''>
+                                                <View className='flex-row items-center my-2'>
+                                                    <Text className='font-semibold text-lg text-gray-900'>Mistake Type: </Text>
+                                                    <Text style={{
+                                                        backgroundColor: mistakeTypeColors[answer.mistake_details.type] || '#E5E7EB', // gray-200 default
+                                                        padding: 6,
+                                                        borderRadius: 4,
+                                                        marginHorizontal: 4
+                                                    }}>
+                                                        {answer.mistake_details.type.toUpperCase()}
+                                                    </Text>
+                                                </View>
+                                                <Text className="text-lg text-gray-900 my-2">
+                                                    <Text className='font-semibold'>Misconception: </Text>
+                                                    <Text>{answer.mistake_details.misconception}</Text>
+                                                </Text>
+
+                                                <Text className="text-lg font-semibold text-gray-900 mt-2 mb-1">Suggestions:</Text>
+                                                {answer.mistake_details.remediation_options.map((ro, index) => (
+                                                    <View key={index} className='flex-row items-center'>
+                                                        <Text>-</Text>
+                                                        <Text className='ml-4 my-2 text-lg'>{ro}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
+                            </View>
                         </View>
                     </View>
 
